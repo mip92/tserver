@@ -25,13 +25,13 @@ export class UserService {
   }
 
   async createUser(data: UserInput): Promise<UserWithTeams> {
-    const user = await this.prisma.user.create({
+    const user = (await this.prisma.user.create({
       data: {
         firstName: data.firstName,
         lastName: data.lastName,
       },
       include: { teams: true },
-    }) as UserWithTeams;
+    })) as UserWithTeams;
 
     if (data.teamId) {
       await this.teamService.addMember(data.teamId, user.id);
