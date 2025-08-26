@@ -7,7 +7,7 @@ async function bootstrap() {
   // Enable CORS for GraphQL Playground
   app.enableCors();
 
-  await app.listen(3000);
+  await app.listen(4000);
 }
 
 void bootstrap();
