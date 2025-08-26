@@ -1,4 +1,4 @@
-import { Field, Int, ObjectType, InputType } from "@nestjs/graphql";
+import { Field, InputType, ObjectType, Int } from "@nestjs/graphql";
 import { RoleBasic } from "../shared/types";
 
 @ObjectType()
@@ -6,13 +6,13 @@ export class User {
   @Field(() => Int)
   id: number;
 
-  @Field({ nullable: false })
+  @Field()
   firstName: string;
 
-  @Field({ nullable: false })
+  @Field()
   lastName: string;
 
-  @Field({ nullable: false })
+  @Field()
   email: string;
 
   @Field({ nullable: true })
@@ -23,6 +23,9 @@ export class User {
 
   @Field(() => Int, { nullable: true })
   roleId?: number;
+
+  @Field(() => RoleBasic, { nullable: true })
+  role?: RoleBasic;
 
   @Field()
   createdAt: Date;
@@ -39,17 +42,23 @@ export class UserWithRole extends User {
 
 @InputType()
 export class UserInput {
-  @Field({ nullable: false })
+  @Field()
   firstName: string;
 
-  @Field({ nullable: false })
+  @Field()
   lastName: string;
 
-  @Field({ nullable: false })
+  @Field()
   email: string;
+
+  @Field()
+  password: string;
 
   @Field({ nullable: true })
   phone?: string;
+
+  @Field({ nullable: true })
+  isActive?: boolean;
 
   @Field(() => Int, { nullable: true })
   roleId?: number;
@@ -65,6 +74,9 @@ export class UserUpdateInput {
 
   @Field({ nullable: true })
   email?: string;
+
+  @Field({ nullable: true })
+  password?: string;
 
   @Field({ nullable: true })
   phone?: string;

@@ -1,90 +1,109 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
-import { UserInput, UserUpdateInput, UserWithRole } from "./user.model";
+import { UserWithRole, UserInput, UserUpdateInput } from "./user.model";
+import * as bcrypt from "bcryptjs";
 
 @Injectable()
 export class UserService {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll(): Promise<UserWithRole[]> {
-    return this.prisma.user.findMany({
+  async findAll(): Promise<UserWithRole[]> {
+    const users = await this.prisma.user.findMany({
       include: { role: true },
-    }) as any;
+    });
+    return users as UserWithRole[];
   }
 
-  findById(id: number): Promise<UserWithRole | null> {
-    return this.prisma.user.findUnique({
+  async findById(id: number): Promise<UserWithRole> {
+    const user = await this.prisma.user.findUnique({
       where: { id },
       include: { role: true },
-    }) as any;
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    return user as UserWithRole;
   }
 
-  findByEmail(email: string): Promise<UserWithRole | null> {
-    return this.prisma.user.findUnique({
+  async findByEmail(email: string): Promise<UserWithRole | null> {
+    const user = await this.prisma.user.findUnique({
       where: { email },
       include: { role: true },
-    }) as any;
+    });
+    return user as UserWithRole | null;
   }
 
-  async createUser(data: UserInput): Promise<UserWithRole> {
+  async createUser(userData: UserInput): Promise<UserWithRole> {
+    // Хешируем пароль перед сохранением
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
+
     const user = await this.prisma.user.create({
       data: {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-        phone: data.phone,
-        roleId: data.roleId,
+        ...userData,
+        password: hashedPassword,
       },
       include: { role: true },
-    }) as any;
+    });
 
-    return user;
+    return user as UserWithRole;
   }
 
-  async updateUser(id: number, data: UserUpdateInput): Promise<UserWithRole | null> {
-    const updateData: any = {};
-    
-    if (data.firstName !== undefined) updateData.firstName = data.firstName;
-    if (data.lastName !== undefined) updateData.lastName = data.lastName;
-    if (data.email !== undefined) updateData.email = data.email;
-    if (data.phone !== undefined) updateData.phone = data.phone;
-    if (data.isActive !== undefined) updateData.isActive = data.isActive;
-    if (data.roleId !== undefined) updateData.roleId = data.roleId;
+  async updateUser(
+    id: number,
+    userData: UserUpdateInput
+  ): Promise<UserWithRole> {
+    const updateData: any = { ...userData };
 
-    return this.prisma.user.update({
+    // Если обновляется пароль, хешируем его
+    if (userData.password) {
+      updateData.password = await bcrypt.hash(userData.password, 10);
+    }
+
+    const user = await this.prisma.user.update({
       where: { id },
       data: updateData,
       include: { role: true },
-    }) as any;
+    });
+
+    return user as UserWithRole;
   }
 
-  deleteUser(id: number): Promise<UserWithRole> {
-    return this.prisma.user.delete({
+  async deleteUser(id: number): Promise<UserWithRole> {
+    const user = await this.prisma.user.delete({
       where: { id },
       include: { role: true },
-    }) as any;
+    });
+
+    return user as UserWithRole;
   }
 
-  findByIds(ids: number[]): Promise<UserWithRole[]> {
-    return this.prisma.user.findMany({
+  async findByIds(ids: number[]): Promise<UserWithRole[]> {
+    const users = await this.prisma.user.findMany({
       where: { id: { in: ids } },
       include: { role: true },
-    }) as any;
+    });
+    return users as UserWithRole[];
   }
 
-  async assignRole(userId: number, roleId: number): Promise<UserWithRole | null> {
-    return this.prisma.user.update({
+  async assignRole(userId: number, roleId: number): Promise<UserWithRole> {
+    const user = await this.prisma.user.update({
       where: { id: userId },
       data: { roleId },
       include: { role: true },
-    }) as any;
+    });
+
+    return user as UserWithRole;
   }
 
-  async removeRole(userId: number): Promise<UserWithRole | null> {
-    return this.prisma.user.update({
+  async removeRole(userId: number): Promise<UserWithRole> {
+    const user = await this.prisma.user.update({
       where: { id: userId },
       data: { roleId: null },
       include: { role: true },
-    }) as any;
+    });
+
+    return user as UserWithRole;
   }
 }

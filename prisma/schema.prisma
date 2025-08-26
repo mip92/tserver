@@ -16,9 +16,11 @@ model User {
   lastName  String
   email     String   @unique
   phone     String?
+  password  String   // Хешированный пароль
   isActive  Boolean  @default(true)
-  roleId    Int?
+  roleId    Int?     // Foreign key для связи с ролью
   role      Role?    @relation(fields: [roleId], references: [id])
+  refreshTokens RefreshToken[] // Связь с refresh токенами
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -29,9 +31,21 @@ model Role {
   id          Int      @id @default(autoincrement())
   name        String   @unique
   description String?
-  users       User[]
+  users       User[]   // Одна роль может быть у многих пользователей
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@map("roles")
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  isRevoked Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("refresh_tokens")
 }
