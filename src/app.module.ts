@@ -1,4 +1,4 @@
-import { Module, MiddlewareConsumer, RequestMethod } from "@nestjs/common";
+import { MiddlewareConsumer, Module, RequestMethod } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { GraphQLModule } from "@nestjs/graphql";
 import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
@@ -6,8 +6,8 @@ import { PrismaModule } from "./prisma/prisma.module";
 import { UserModule } from "./modules/users/user.module";
 import { RoleModule } from "./modules/roles/role.module";
 import { AuthModule } from "./modules/auth/auth.module";
-import { GraphQLAuthMiddleware } from "./modules/auth/graphql-auth.middleware";
 import configuration from "./config/configuration";
+import { GraphQLAuthMiddleware } from "./modules/auth/graphql-auth.middleware";
 
 @Module({
   imports: [
@@ -19,6 +19,7 @@ import configuration from "./config/configuration";
       driver: ApolloDriver,
       autoSchemaFile: true,
       playground: true,
+      introspection: true,
       context: ({ req }) => ({ req }),
     }),
     PrismaModule,

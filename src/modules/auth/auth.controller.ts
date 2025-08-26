@@ -3,34 +3,35 @@ import { AuthService } from "./auth.service";
 import { LocalAuthGuard } from "./guards/local-auth.guard";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 import { CurrentUser } from "./decorators/current-user.decorator";
+import { Token } from "./decorators/token.decorator";
 
 @Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @UseGuards(LocalAuthGuard)
   @Post("login")
-  async login(@Body() loginDto: { email: string; password: string }) {
-    const user = await this.authService.validateUser(
-      loginDto.email,
-      loginDto.password
-    );
-
-    if (!user) {
-      throw new Error("Invalid credentials");
-    }
-
+  async login(@CurrentUser() user: any) {
     return this.authService.login(user);
   }
 
   @Post("refresh")
-  async refresh(@Body() refreshDto: { refresh_token: string }) {
-    return this.authService.refreshToken(refreshDto.refresh_token);
+  async refresh(@Token() token: string) {
+    if (!token) {
+      throw new Error("Invalid authorization header");
+    }
+
+    return this.authService.refreshToken(token);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post("logout")
-  async logout(@Body() logoutDto: { refresh_token: string }) {
-    return this.authService.logout(logoutDto.refresh_token);
+  async logout(@Token() token: string) {
+    if (!token) {
+      throw new Error("Invalid authorization header");
+    }
+
+    return this.authService.logout(token);
   }
 
   @UseGuards(JwtAuthGuard)
