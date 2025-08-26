@@ -1,4 +1,5 @@
 import { Field, Int, ObjectType, InputType } from "@nestjs/graphql";
+import { RoleBasic } from "../shared/types";
 
 @ObjectType()
 export class User {
@@ -11,32 +12,29 @@ export class User {
   @Field({ nullable: false })
   lastName: string;
 
-  @Field()
-  createdAt: Date;
-
-  @Field()
-  updatedAt: Date;
-}
-
-@ObjectType()
-export class UserWithTeams extends User {
-  @Field(() => [TeamBasic], { nullable: true })
-  teams: TeamBasic[];
-}
-
-@ObjectType()
-export class TeamBasic {
-  @Field(() => Int)
-  id: number;
-
   @Field({ nullable: false })
-  name: string;
+  email: string;
+
+  @Field({ nullable: true })
+  phone?: string;
+
+  @Field()
+  isActive: boolean;
+
+  @Field(() => Int, { nullable: true })
+  roleId?: number;
 
   @Field()
   createdAt: Date;
 
   @Field()
   updatedAt: Date;
+}
+
+@ObjectType()
+export class UserWithRole extends User {
+  @Field(() => RoleBasic, { nullable: true })
+  role?: RoleBasic;
 }
 
 @InputType()
@@ -47,6 +45,33 @@ export class UserInput {
   @Field({ nullable: false })
   lastName: string;
 
+  @Field({ nullable: false })
+  email: string;
+
+  @Field({ nullable: true })
+  phone?: string;
+
   @Field(() => Int, { nullable: true })
-  teamId?: number;
+  roleId?: number;
+}
+
+@InputType()
+export class UserUpdateInput {
+  @Field({ nullable: true })
+  firstName?: string;
+
+  @Field({ nullable: true })
+  lastName?: string;
+
+  @Field({ nullable: true })
+  email?: string;
+
+  @Field({ nullable: true })
+  phone?: string;
+
+  @Field({ nullable: true })
+  isActive?: boolean;
+
+  @Field(() => Int, { nullable: true })
+  roleId?: number;
 }

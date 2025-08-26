@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
 import { UserModule } from "./modules/users/user.module";
-import { TeamModule } from "./modules/teams/team.module";
+import { RoleModule } from "./modules/roles/role.module";
 import { GraphQLModule } from "@nestjs/graphql";
 import { PrismaModule } from "./prisma/prisma.module";
 import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
@@ -16,7 +16,7 @@ import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
       // вместо него используется Apollo Studio Explorer
     }),
     UserModule,
-    TeamModule,
+    RoleModule,
   ],
 })
 export class AppModule {}
