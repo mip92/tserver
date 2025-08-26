@@ -1,7 +1,7 @@
 import { forwardRef, Inject, Injectable } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
 import { TeamService } from "../teams/team.service";
-import { User, UserInput, UserWithTeams } from "./user.model";
+import { UserInput, UserWithTeams } from "./user.model";
 
 @Injectable()
 export class UserService {

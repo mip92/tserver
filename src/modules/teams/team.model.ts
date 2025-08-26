@@ -17,7 +17,7 @@ export class Team {
 
 @ObjectType()
 export class TeamWithMembers extends Team {
-  @Field((type) => [UserBasic], { nullable: true })
+  @Field(() => [UserBasic], { nullable: true })
   members: UserBasic[];
 }
 
