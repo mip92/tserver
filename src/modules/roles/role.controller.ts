@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, ParseIntPipe } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  ParseIntPipe,
+} from "@nestjs/common";
 import { RoleService } from "./role.service";
 import { RoleInput, RoleUpdateInput } from "./role.model";
 
@@ -22,7 +31,10 @@ export class RoleController {
   }
 
   @Put(":id")
-  update(@Param("id", ParseIntPipe) id: number, @Body() updateRoleDto: RoleUpdateInput) {
+  update(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() updateRoleDto: RoleUpdateInput
+  ) {
     return this.roleService.updateRole(id, updateRoleDto);
   }
 
