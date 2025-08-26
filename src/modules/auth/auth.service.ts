@@ -27,10 +27,10 @@ export class AuthService {
   }
 
   async login(user: any) {
-    const payload = { 
-      email: user.email, 
-      sub: user.id, 
-      role: user.role?.name 
+    const payload = {
+      email: user.email,
+      sub: user.id,
+      role: user.role?.name,
     };
 
     const accessToken = this.jwtService.sign(payload);
@@ -55,14 +55,18 @@ export class AuthService {
       include: { user: { include: { role: true } } },
     });
 
-    if (!refreshToken || refreshToken.isRevoked || refreshToken.expiresAt < new Date()) {
+    if (
+      !refreshToken ||
+      refreshToken.isRevoked ||
+      refreshToken.expiresAt < new Date()
+    ) {
       throw new UnauthorizedException("Invalid refresh token");
     }
 
-    const payload = { 
-      email: refreshToken.user.email, 
-      sub: refreshToken.user.id, 
-      role: refreshToken.user.role?.name 
+    const payload = {
+      email: refreshToken.user.email,
+      sub: refreshToken.user.id,
+      role: refreshToken.user.role?.name,
     };
 
     const newAccessToken = this.jwtService.sign(payload);
@@ -91,13 +95,14 @@ export class AuthService {
   private async createRefreshToken(userId: number): Promise<string> {
     const token = uuidv4();
     const expiresAt = new Date();
-    const refreshTokenExpiresIn = this.configService.get<string>('JWT_REFRESH_TOKEN_EXPIRES_IN') || '7d';
-    
+    const refreshTokenExpiresIn =
+      this.configService.get<string>("JWT_REFRESH_TOKEN_EXPIRES_IN") || "7d";
+
     // Парсим строку времени (например, '7d' -> 7 дней)
-    if (refreshTokenExpiresIn.endsWith('d')) {
+    if (refreshTokenExpiresIn.endsWith("d")) {
       const days = parseInt(refreshTokenExpiresIn.slice(0, -1));
       expiresAt.setDate(expiresAt.getDate() + days);
-    } else if (refreshTokenExpiresIn.endsWith('h')) {
+    } else if (refreshTokenExpiresIn.endsWith("h")) {
       const hours = parseInt(refreshTokenExpiresIn.slice(0, -1));
       expiresAt.setHours(expiresAt.getHours() + hours);
     } else {
