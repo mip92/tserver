@@ -7,46 +7,38 @@ export async function seedBrands(
 ) {
   logSection("Seeding Brands");
 
-  const brands = await Promise.all([
-    prisma.brand.create({
-      data: {
-        id: BRAND_IDS.YELLOW_DRAGONFLY,
-        name: "Yellow Dragonfly",
-      },
-    }),
-    prisma.brand.create({
-      data: {
-        id: BRAND_IDS.DYNAMIC,
-        name: "Dynamic",
-      },
-    }),
-    prisma.brand.create({
-      data: {
-        id: BRAND_IDS.POSEIDON,
-        name: "Poseidon",
-      },
-    }),
-    prisma.brand.create({
-      data: {
-        id: BRAND_IDS.AB,
-        name: "AB",
-      },
-    }),
-    prisma.brand.create({
-      data: {
-        id: BRAND_IDS.STENCIL_STUFF,
-        name: "Stencil Stuff",
-      },
-    }),
-    prisma.brand.create({
-      data: {
-        id: BRAND_IDS.MAST,
-        name: "Mast",
-      },
-    }),
-  ]);
+  const brandsData = [
+    {
+      id: BRAND_IDS.YELLOW_DRAGONFLY,
+      name: "Yellow Dragonfly",
+    },
+    {
+      id: BRAND_IDS.DYNAMIC,
+      name: "Dynamic",
+    },
+    {
+      id: BRAND_IDS.POSEIDON,
+      name: "Poseidon",
+    },
+    {
+      id: BRAND_IDS.AB,
+      name: "AB",
+    },
+    {
+      id: BRAND_IDS.STENCIL_STUFF,
+      name: "Stencil Stuff",
+    },
+    {
+      id: BRAND_IDS.MAST,
+      name: "Mast",
+    },
+  ];
 
-  logSuccess(`Brands created: ${brands.map((b) => b.name).join(", ")}`);
+  const brands = await prisma.brand.createMany({
+    data: brandsData,
+  });
+
+  logSuccess(`${brands.count} brands created successfully`);
 
   return brands;
 }

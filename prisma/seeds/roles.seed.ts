@@ -7,25 +7,24 @@ export async function seedRoles(
 ) {
   logSection("Seeding Roles");
 
-  const adminRole = await prisma.role.create({
-    data: {
+  const rolesData = [
+    {
       id: ROLE_IDS.ADMIN,
       name: "admin",
       description: "Administrator role with full access",
     },
-  });
-
-  const userRole = await prisma.role.create({
-    data: {
+    {
       id: ROLE_IDS.USER,
       name: "user",
       description: "Regular user role",
     },
+  ];
+
+  const roles = await prisma.role.createMany({
+    data: rolesData,
   });
 
-  logSuccess(
-    `Roles created: admin (${adminRole.name}), user (${userRole.name})`
-  );
+  logSuccess(`${roles.count} roles created successfully`);
 
-  return { adminRole, userRole };
+  return roles;
 }

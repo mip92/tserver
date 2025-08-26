@@ -10,8 +10,8 @@ export async function seedUsers(
 
   const hashedPassword = await bcrypt.hash("admin123", 10);
 
-  const adminUser = await prisma.user.create({
-    data: {
+  const usersData = [
+    {
       id: USER_IDS.ADMIN,
       email: "19mip92@gmail.com",
       firstName: "Admin",
@@ -20,11 +20,13 @@ export async function seedUsers(
       isActive: true,
       roleId: ROLE_IDS.ADMIN,
     },
+  ];
+
+  const users = await prisma.user.createMany({
+    data: usersData,
   });
 
-  logSuccess(
-    `Admin user created: ${adminUser.firstName} ${adminUser.lastName} (${adminUser.email})`
-  );
+  logSuccess(`${users.count} users created successfully`);
 
-  return adminUser;
+  return users;
 }
