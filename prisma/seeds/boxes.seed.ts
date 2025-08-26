@@ -1,8 +1,10 @@
 import { PrismaClient } from "@prisma/client";
 import { logSection, logSuccess } from "./utils";
-import { BOX_IDS, BOX_TYPE_IDS } from "./constants";
+import { BOX_IDS, BOX_TYPE_IDS, PrismaTransactionClient } from "./constants";
 
-export async function seedBoxes(prisma: PrismaClient) {
+export async function seedBoxes(
+  prisma: PrismaClient | PrismaTransactionClient
+) {
   logSection("Seeding Boxes");
 
   // Создаем коробки для каждого типа

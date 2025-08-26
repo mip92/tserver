@@ -6,7 +6,6 @@ import { seedBoxTypes } from "./box-types.seed";
 import { seedProducts } from "./products.seed";
 import { seedBoxes } from "./boxes.seed";
 import { seedBoxProducts } from "./box-products.seed";
-import { ROLE_IDS } from "./constants";
 
 export async function runSeeds() {
   const prisma = new PrismaClient();
@@ -14,13 +13,20 @@ export async function runSeeds() {
   try {
     console.log("🌱 Starting seeding...");
 
-    await seedRoles(prisma);
-    await seedUsers(prisma);
-    await seedBrands(prisma);
-    await seedBoxTypes(prisma);
-    await seedProducts(prisma);
-    await seedBoxes(prisma);
-    await seedBoxProducts(prisma);
+    // Запускаем все сиды в одной транзакции
+    await prisma.$transaction(async (tx) => {
+      console.log("🔄 Starting database transaction...");
+
+      await seedRoles(tx);
+      await seedUsers(tx);
+      await seedBrands(tx);
+      await seedBoxTypes(tx);
+      await seedProducts(tx);
+      await seedBoxes(tx);
+      await seedBoxProducts(tx);
+
+      console.log("✅ Transaction completed successfully!");
+    });
 
     console.log("🎉 All seeds completed successfully!");
   } catch (error) {

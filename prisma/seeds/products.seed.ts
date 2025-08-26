@@ -1,8 +1,10 @@
 import { PrismaClient } from "@prisma/client";
 import { logSection, logSuccess } from "./utils";
-import { PRODUCT_IDS, BRAND_IDS } from "./constants";
+import { PRODUCT_IDS, BRAND_IDS, PrismaTransactionClient } from "./constants";
 
-export async function seedProducts(prisma: PrismaClient) {
+export async function seedProducts(
+  prisma: PrismaClient | PrismaTransactionClient
+) {
   logSection("Seeding Products");
 
   const products = await Promise.all([

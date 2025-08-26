@@ -1,46 +1,48 @@
 import { PrismaClient } from "@prisma/client";
 import { logSection, logSuccess } from "./utils";
-import { BRAND_IDS } from "./constants";
+import { BRAND_IDS, PrismaTransactionClient } from "./constants";
 
-export async function seedBrands(prisma: PrismaClient) {
+export async function seedBrands(
+  prisma: PrismaClient | PrismaTransactionClient
+) {
   logSection("Seeding Brands");
 
   const brands = await Promise.all([
-    prisma.brand.create({ 
-      data: { 
+    prisma.brand.create({
+      data: {
         id: BRAND_IDS.YELLOW_DRAGONFLY,
-        name: "Yellow Dragonfly" 
-      } 
+        name: "Yellow Dragonfly",
+      },
     }),
-    prisma.brand.create({ 
-      data: { 
+    prisma.brand.create({
+      data: {
         id: BRAND_IDS.DYNAMIC,
-        name: "Dynamic" 
-      } 
+        name: "Dynamic",
+      },
     }),
-    prisma.brand.create({ 
-      data: { 
+    prisma.brand.create({
+      data: {
         id: BRAND_IDS.POSEIDON,
-        name: "Poseidon" 
-      } 
+        name: "Poseidon",
+      },
     }),
-    prisma.brand.create({ 
-      data: { 
+    prisma.brand.create({
+      data: {
         id: BRAND_IDS.AB,
-        name: "AB" 
-      } 
+        name: "AB",
+      },
     }),
-    prisma.brand.create({ 
-      data: { 
+    prisma.brand.create({
+      data: {
         id: BRAND_IDS.STENCIL_STUFF,
-        name: "Stencil Stuff" 
-      } 
+        name: "Stencil Stuff",
+      },
     }),
-    prisma.brand.create({ 
-      data: { 
+    prisma.brand.create({
+      data: {
         id: BRAND_IDS.MAST,
-        name: "Mast" 
-      } 
+        name: "Mast",
+      },
     }),
   ]);
 

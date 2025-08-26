@@ -1,8 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import { logSection, logSuccess } from "./utils";
-import { BOX_TYPE_IDS } from "./constants";
+import { BOX_TYPE_IDS, PrismaTransactionClient } from "./constants";
 
-export async function seedBoxTypes(prisma: PrismaClient) {
+export async function seedBoxTypes(prisma: PrismaClient | PrismaTransactionClient) {
   logSection("Seeding Box Types");
 
   const boxTypes = await Promise.all([

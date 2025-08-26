@@ -1,9 +1,11 @@
 import { PrismaClient } from "@prisma/client";
 import * as bcrypt from "bcryptjs";
 import { logSection, logSuccess } from "./utils";
-import { USER_IDS, ROLE_IDS } from "./constants";
+import { USER_IDS, ROLE_IDS, PrismaTransactionClient } from "./constants";
 
-export async function seedUsers(prisma: PrismaClient) {
+export async function seedUsers(
+  prisma: PrismaClient | PrismaTransactionClient
+) {
   logSection("Seeding Users");
 
   const hashedPassword = await bcrypt.hash("admin123", 10);

@@ -1,10 +1,12 @@
 import { PrismaClient } from "@prisma/client";
 import { logSection, logSuccess } from "./utils";
-import { ROLE_IDS } from "./constants";
+import { ROLE_IDS, PrismaTransactionClient } from "./constants";
 
-export async function seedRoles(prisma: PrismaClient) {
+export async function seedRoles(
+  prisma: PrismaClient | PrismaTransactionClient
+) {
   logSection("Seeding Roles");
-  
+
   const adminRole = await prisma.role.create({
     data: {
       id: ROLE_IDS.ADMIN,
@@ -21,7 +23,9 @@ export async function seedRoles(prisma: PrismaClient) {
     },
   });
 
-  logSuccess(`Roles created: admin (${adminRole.name}), user (${userRole.name})`);
+  logSuccess(
+    `Roles created: admin (${adminRole.name}), user (${userRole.name})`
+  );
 
   return { adminRole, userRole };
 }

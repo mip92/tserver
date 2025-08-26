@@ -1,3 +1,11 @@
+import { PrismaClient } from "@prisma/client";
+
+// Тип для транзакционного клиента Prisma
+export type PrismaTransactionClient = Omit<
+  PrismaClient,
+  "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
+>;
+
 // Константы для ID ролей
 export const ROLE_IDS = {
   ADMIN: 1,
@@ -43,7 +51,7 @@ export const PRODUCT_IDS = {
   RL_9: 5,
   RL_11: 6,
   RL_14: 7,
-  
+
   // Yellow Dragonfly (RS)
   RS_3: 8,
   RS_5: 9,
@@ -51,45 +59,45 @@ export const PRODUCT_IDS = {
   RS_9: 11,
   RS_11: 12,
   RS_14: 13,
-  
+
   // AB (RS)
   RS_9_AB: 14,
-  
+
   // Yellow Dragonfly (RM)
   RM_5: 15,
   RM_7: 16,
   RM_9: 17,
   RM_11: 18,
   RM_13: 19,
-  
+
   // AB (RM)
   RM_15: 20,
   RM_17: 21,
   RM_35: 22,
   RM_39: 23,
   RM_45: 24,
-  
+
   // Yellow Dragonfly (M1)
   M1_5: 25,
   M1_7: 26,
   M1_9: 27,
-  
+
   // Poseidon (box)
   BOX: 28,
-  
+
   // Dynamic (RL)
   DYNAMIC_RL_3: 29,
   DYNAMIC_RL_5: 30,
   DYNAMIC_RL_7: 31,
   DYNAMIC_RL_9: 32,
   DYNAMIC_RL_11: 33,
-  
+
   // Poseidon (Paint)
   BLACK_PAINT: 34,
-  
+
   // Stencil Stuff (transfer gel)
   TRANSFER_GEL: 35,
-  
+
   // AB (RS)
   RS_5_AB: 36,
 } as const;
@@ -100,19 +108,19 @@ export const BOX_IDS = {
   BLACK_RL_1: 1,
   WHITE_RL_1: 2,
   BLACK_RL_2: 3,
-  
+
   // RS коробки
   BLACK_RS_1: 4,
   BLACK_RS_2: 5,
-  
+
   // RM коробки
   BLACK_RM_1: 6,
   BLACK_RM_2: 7,
-  
+
   // M1 коробки
   BLACK_M1_1: 8,
   WHITE_M1_1: 9,
-  
+
   // Обычные коробки
   DARK_BLUE_BOX_1: 10,
   MAST_BLUE_1: 11,

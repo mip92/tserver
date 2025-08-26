@@ -1,8 +1,15 @@
 import { PrismaClient } from "@prisma/client";
 import { logSection, logSuccess } from "./utils";
-import { BOX_IDS, PRODUCT_IDS, BOX_PRODUCT_IDS } from "./constants";
+import {
+  BOX_IDS,
+  PRODUCT_IDS,
+  BOX_PRODUCT_IDS,
+  PrismaTransactionClient,
+} from "./constants";
 
-export async function seedBoxProducts(prisma: PrismaClient) {
+export async function seedBoxProducts(
+  prisma: PrismaClient | PrismaTransactionClient
+) {
   logSection("Seeding Box Products");
 
   // Массовое создание связей между коробками и продуктами
