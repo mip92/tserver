@@ -1,5 +1,11 @@
-import { Field, InputType, ObjectType, Int } from "@nestjs/graphql";
-import { ProductType } from "@prisma/generated";
+import {
+  Field,
+  InputType,
+  ObjectType,
+  Int,
+  GraphQLISODateTime,
+} from "@nestjs/graphql";
+import { ProductType } from "@prisma/client";
 
 @ObjectType()
 export class Brand {
@@ -9,10 +15,10 @@ export class Brand {
   @Field(() => String)
   name: string;
 
-  @Field(() => Date)
+  @Field(() => GraphQLISODateTime)
   createdAt: Date;
 
-  @Field(() => Date)
+  @Field(() => GraphQLISODateTime)
   updatedAt: Date;
 }
 
@@ -30,10 +36,10 @@ export class Product {
   @Field(() => Int)
   brandId: number;
 
-  @Field(() => Date)
+  @Field(() => GraphQLISODateTime)
   createdAt: Date;
 
-  @Field(() => Date)
+  @Field(() => GraphQLISODateTime)
   updatedAt: Date;
 }
 

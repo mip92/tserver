@@ -1,6 +1,18 @@
-import { Field, InputType, Int, ObjectType } from "@nestjs/graphql";
+import {
+  Field,
+  InputType,
+  Int,
+  ObjectType,
+  GraphQLISODateTime,
+  registerEnumType,
+} from "@nestjs/graphql";
 import { UserBasic } from "../shared/types";
 import { RoleType } from "@prisma/client";
+
+registerEnumType(RoleType, {
+  name: "RoleType",
+  description: "Тип роли",
+});
 
 @ObjectType()
 export class Role {
@@ -13,10 +25,10 @@ export class Role {
   @Field({ nullable: true })
   description?: string;
 
-  @Field()
+  @Field(() => GraphQLISODateTime)
   createdAt: Date;
 
-  @Field()
+  @Field(() => GraphQLISODateTime)
   updatedAt: Date;
 }
 

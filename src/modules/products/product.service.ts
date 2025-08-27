@@ -6,9 +6,8 @@ import {
   ProductUpdateInput,
 } from "./product.model";
 import { ProductsQueryDto } from "./dto/products-query.dto";
-import { ProductType } from "@prisma/generated";
 import { PaginatedResponse } from "../shared/pagination.types";
-import { Prisma } from "@prisma/client";
+import { Prisma, ProductType } from "@prisma/client";
 
 @Injectable()
 export class ProductService {

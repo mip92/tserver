@@ -11,9 +11,7 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "paths": {
-      "@/*": ["*"],
-      "@prisma/generated": ["generated"],
-      "@prisma/generated/*": ["generated/*"]
+      "@/*": ["*"]
     },
     "incremental": true,
     "resolveJsonModule": true,

@@ -13,7 +13,7 @@ import { Roles } from "../auth/decorators/admin-role.decorator";
 import { RoleType } from "../auth/types/role.types";
 import { ProductsQueryDto } from "./dto/products-query.dto";
 import { PaginatedProductsResponse } from "./dto/paginated-products.dto";
-import { ProductType } from "@prisma/generated";
+import { ProductType } from "@prisma/client";
 import { PaginatedResponse } from "../shared/pagination.types";
 
 @Resolver(() => Product)
@@ -28,8 +28,13 @@ export class ProductResolver {
   @Query(() => PaginatedProductsResponse)
   async productsWithPagination(
     @Args("query") query: ProductsQueryDto
-  ): Promise<PaginatedResponse<ProductWithBrand>> {
-    return await this.productService.findWithPagination(query);
+  ): Promise<PaginatedProductsResponse> {
+    const result = await this.productService.findWithPagination(query);
+
+    return {
+      rows: result.rows,
+      total: result.total,
+    };
   }
 
   @Query(() => ProductWithBrand)

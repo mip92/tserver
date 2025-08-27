@@ -1,4 +1,10 @@
-import { Field, InputType, ObjectType, Int } from "@nestjs/graphql";
+import {
+  Field,
+  InputType,
+  ObjectType,
+  Int,
+  GraphQLISODateTime,
+} from "@nestjs/graphql";
 import { RoleBasic } from "../shared/types";
 
 @ObjectType()
@@ -27,10 +33,10 @@ export class User {
   @Field(() => RoleBasic, { nullable: true })
   role?: RoleBasic;
 
-  @Field()
+  @Field(() => GraphQLISODateTime)
   createdAt: Date;
 
-  @Field()
+  @Field(() => GraphQLISODateTime)
   updatedAt: Date;
 }
 
