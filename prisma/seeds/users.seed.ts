@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 import * as bcrypt from "bcryptjs";
 import { logSection, logSuccess } from "./utils";
 import { USER_IDS, ROLE_IDS, PrismaTransactionClient } from "./constants";
@@ -7,26 +7,19 @@ export async function seedUsers(
   prisma: PrismaClient | PrismaTransactionClient
 ) {
   logSection("Seeding Users");
-
-  const hashedPassword = await bcrypt.hash("admin123", 10);
-
-  const usersData = [
+  const usersData: Prisma.Enumerable<Prisma.UserCreateManyInput> = [
     {
       id: USER_IDS.ADMIN,
-      email: "19mip92@gmail.com",
       firstName: "Admin",
       lastName: "User",
-      password: hashedPassword,
+      email: "admin@example.com",
+      phone: "+1234567890",
       isActive: true,
+      password: "hashedPassword123", // В реальном приложении должен быть хеш
       roleId: ROLE_IDS.ADMIN,
     },
   ];
-
-  const users = await prisma.user.createMany({
-    data: usersData,
-  });
-
+  const users = await prisma.user.createMany({ data: usersData });
   logSuccess(`${users.count} users created successfully`);
-
   return users;
 }

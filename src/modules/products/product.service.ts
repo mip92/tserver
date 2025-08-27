@@ -5,6 +5,10 @@ import {
   ProductInput,
   ProductUpdateInput,
 } from "./product.model";
+import { ProductsQueryDto } from "./dto/products-query.dto";
+import { ProductType } from "@prisma/generated";
+import { PaginatedResponse } from "../shared/pagination.types";
+import { Prisma } from "@prisma/client";
 
 @Injectable()
 export class ProductService {
@@ -15,6 +19,59 @@ export class ProductService {
       include: { brand: true },
     });
     return products as ProductWithBrand[];
+  }
+
+  async findWithPagination({
+    skip = 0,
+    take = 10,
+    sortBy,
+    sortOrder,
+    search,
+    brandId,
+    type,
+    ids,
+  }: ProductsQueryDto): Promise<PaginatedResponse<ProductWithBrand>> {
+    const where: Prisma.ProductWhereInput = {};
+
+    if (brandId) {
+      where.brandId = brandId;
+    }
+
+    if (type) {
+      where.type = type;
+    }
+
+    if (ids && ids.length > 0) {
+      where.id = { in: ids };
+    }
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { type: { equals: search as ProductType } },
+      ];
+    }
+
+    const orderBy: Prisma.ProductOrderByWithRelationInput = {};
+    if (sortBy) {
+      orderBy[sortBy] = sortOrder || "asc";
+    }
+
+    const [rows, total] = await Promise.all([
+      this.prisma.product.findMany({
+        where,
+        include: { brand: true },
+        orderBy,
+        skip,
+        take,
+      }),
+      this.prisma.product.count({ where }),
+    ]);
+
+    return {
+      rows,
+      total,
+    };
   }
 
   async findById(id: number): Promise<ProductWithBrand> {
@@ -38,7 +95,7 @@ export class ProductService {
     return products as ProductWithBrand[];
   }
 
-  async findByType(type: string): Promise<ProductWithBrand[]> {
+  async findByType(type: ProductType): Promise<ProductWithBrand[]> {
     const products = await this.prisma.product.findMany({
       where: { type },
       include: { brand: true },

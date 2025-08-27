@@ -1,5 +1,6 @@
 import { Field, InputType, Int, ObjectType } from "@nestjs/graphql";
 import { UserBasic } from "../shared/types";
+import { RoleType } from "@prisma/client";
 
 @ObjectType()
 export class Role {
@@ -28,7 +29,7 @@ export class RoleWithUsers extends Role {
 @InputType()
 export class RoleInput {
   @Field({ nullable: false })
-  name: string;
+  name: RoleType;
 
   @Field({ nullable: true })
   description?: string;
@@ -37,7 +38,7 @@ export class RoleInput {
 @InputType()
 export class RoleUpdateInput {
   @Field({ nullable: true })
-  name?: string;
+  name?: RoleType;
 
   @Field({ nullable: true })
   description?: string;

@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
 import { Role, RoleInput, RoleUpdateInput, RoleWithUsers } from "./role.model";
+import { RoleType } from "@prisma/client";
 
 @Injectable()
 export class RoleService {
@@ -19,7 +20,7 @@ export class RoleService {
     }) as Promise<RoleWithUsers | null>;
   }
 
-  findByName(name: string): Promise<Role | null> {
+  findByName(name: RoleType): Promise<Role | null> {
     return this.prisma.role.findUnique({
       where: { name },
     });

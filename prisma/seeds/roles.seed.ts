@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 import { logSection, logSuccess } from "./utils";
 import { ROLE_IDS, ROLE_NAMES, PrismaTransactionClient } from "./constants";
 
@@ -6,8 +6,7 @@ export async function seedRoles(
   prisma: PrismaClient | PrismaTransactionClient
 ) {
   logSection("Seeding Roles");
-
-  const rolesData = [
+  const rolesData: Prisma.Enumerable<Prisma.RoleCreateManyInput> = [
     {
       id: ROLE_IDS.ADMIN,
       name: ROLE_NAMES.ADMIN,
@@ -19,12 +18,7 @@ export async function seedRoles(
       description: "Regular user role",
     },
   ];
-
-  const roles = await prisma.role.createMany({
-    data: rolesData,
-  });
-
+  const roles = await prisma.role.createMany({ data: rolesData });
   logSuccess(`${roles.count} roles created successfully`);
-
   return roles;
 }

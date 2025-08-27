@@ -12,6 +12,13 @@ enum RoleType {
   USER
 }
 
+enum ProductType {
+  CARTRIDGE
+  PAINT
+  TRANSFER
+  GEL
+}
+
 model User {
   id            Int            @id @default(autoincrement())
   firstName     String
@@ -94,7 +101,7 @@ model BoxProduct {
 
 model Product {
   id          Int          @id @default(autoincrement())
-  type        String
+  type        ProductType
   name        String
   brandId     Int
   createdAt   DateTime     @default(now())

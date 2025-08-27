@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 import { logSection, logSuccess } from "./utils";
 import { BOX_TYPE_IDS, PrismaTransactionClient } from "./constants";
 
@@ -6,8 +6,7 @@ export async function seedBoxTypes(
   prisma: PrismaClient | PrismaTransactionClient
 ) {
   logSection("Seeding Box Types");
-
-  const boxTypesData = [
+  const boxTypesData: Prisma.Enumerable<Prisma.BoxTypeCreateManyInput> = [
     {
       id: BOX_TYPE_IDS.BLACK_RL,
       name: "black_RL",
@@ -69,12 +68,7 @@ export async function seedBoxTypes(
       quantity: 10,
     },
   ];
-
-  const boxTypes = await prisma.boxType.createMany({
-    data: boxTypesData,
-  });
-
+  const boxTypes = await prisma.boxType.createMany({ data: boxTypesData });
   logSuccess(`${boxTypes.count} box types created successfully`);
-
   return boxTypes;
 }

@@ -1,17 +1,18 @@
 import { Field, InputType, ObjectType, Int } from "@nestjs/graphql";
+import { ProductType } from "@prisma/generated";
 
 @ObjectType()
 export class Brand {
   @Field(() => Int)
   id: number;
 
-  @Field()
+  @Field(() => String)
   name: string;
 
-  @Field()
+  @Field(() => Date)
   createdAt: Date;
 
-  @Field()
+  @Field(() => Date)
   updatedAt: Date;
 }
 
@@ -20,22 +21,19 @@ export class Product {
   @Field(() => Int)
   id: number;
 
-  @Field()
-  type: string;
+  @Field(() => ProductType)
+  type: ProductType;
 
-  @Field()
+  @Field(() => String)
   name: string;
 
   @Field(() => Int)
   brandId: number;
 
-  @Field(() => Brand)
-  brand: Brand;
-
-  @Field()
+  @Field(() => Date)
   createdAt: Date;
 
-  @Field()
+  @Field(() => Date)
   updatedAt: Date;
 }
 
@@ -47,10 +45,10 @@ export class ProductWithBrand extends Product {
 
 @InputType()
 export class ProductInput {
-  @Field()
-  type: string;
+  @Field(() => ProductType)
+  type: ProductType;
 
-  @Field()
+  @Field(() => String)
   name: string;
 
   @Field(() => Int)
@@ -59,10 +57,10 @@ export class ProductInput {
 
 @InputType()
 export class ProductUpdateInput {
-  @Field({ nullable: true })
-  type?: string;
+  @Field(() => ProductType, { nullable: true })
+  type?: ProductType;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   name?: string;
 
   @Field(() => Int, { nullable: true })

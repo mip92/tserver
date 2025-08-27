@@ -1,6 +1,7 @@
 import { Args, Int, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { Role, RoleInput, RoleUpdateInput } from "./role.model";
 import { RoleService } from "./role.service";
+import { RoleType } from "@prisma/client";
 
 @Resolver(() => Role)
 export class RoleResolver {
@@ -18,7 +19,7 @@ export class RoleResolver {
 
   @Query(() => Role, { name: "roleByName", nullable: true })
   async getRoleByName(
-    @Args({ name: "name", type: () => String }) name: string
+    @Args({ name: "name", type: () => RoleType }) name: RoleType
   ) {
     return this.roleService.findByName(name);
   }

@@ -11,6 +11,10 @@ import { GraphQLAuthGuard } from "../auth/guards/graphql-auth.guard";
 import { RolesGuard } from "../auth/guards/admin-role.guard";
 import { Roles } from "../auth/decorators/admin-role.decorator";
 import { RoleType } from "../auth/types/role.types";
+import { ProductsQueryDto } from "./dto/products-query.dto";
+import { PaginatedProductsResponse } from "./dto/paginated-products.dto";
+import { ProductType } from "@prisma/generated";
+import { PaginatedResponse } from "../shared/pagination.types";
 
 @Resolver(() => Product)
 export class ProductResolver {
@@ -19,6 +23,13 @@ export class ProductResolver {
   @Query(() => [ProductWithBrand])
   async products(): Promise<ProductWithBrand[]> {
     return this.productService.findAll();
+  }
+
+  @Query(() => PaginatedProductsResponse)
+  async productsWithPagination(
+    @Args("query") query: ProductsQueryDto
+  ): Promise<PaginatedResponse<ProductWithBrand>> {
+    return await this.productService.findWithPagination(query);
   }
 
   @Query(() => ProductWithBrand)
@@ -37,7 +48,7 @@ export class ProductResolver {
 
   @Query(() => [ProductWithBrand])
   async productsByType(
-    @Args("type") type: string
+    @Args("type", { type: () => ProductType }) type: ProductType
   ): Promise<ProductWithBrand[]> {
     return this.productService.findByType(type);
   }
