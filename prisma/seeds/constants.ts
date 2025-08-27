@@ -1,23 +1,29 @@
 import { PrismaClient } from "@prisma/client";
 
-// Тип для транзакционного клиента Prisma
+// Type for the transactional Prisma client
 export type PrismaTransactionClient = Omit<
   PrismaClient,
   "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
 >;
 
-// Константы для ID ролей
+// Constants for ID roles
 export const ROLE_IDS = {
   ADMIN: 1,
   USER: 2,
 } as const;
 
-// Константы для ID пользователей
+// Constants for role names (enum values)
+export const ROLE_NAMES = {
+  ADMIN: "ADMIN",
+  USER: "USER",
+} as const;
+
+// Constants for ID users
 export const USER_IDS = {
   ADMIN: 1,
 } as const;
 
-// Константы для ID брендов
+// Constants for ID brands
 export const BRAND_IDS = {
   YELLOW_DRAGONFLY: 1,
   DYNAMIC: 2,
@@ -27,7 +33,7 @@ export const BRAND_IDS = {
   MAST: 6,
 } as const;
 
-// Константы для ID типов коробок
+// Constants for ID box types
 export const BOX_TYPE_IDS = {
   BLACK_RL: 1,
   WHITE_RL: 2,
@@ -41,7 +47,7 @@ export const BOX_TYPE_IDS = {
   CUSTOM_BOX: 10,
 } as const;
 
-// Константы для ID продуктов
+// Constants for ID products
 export const PRODUCT_IDS = {
   // Yellow Dragonfly (RL)
   RL_1: 1,
@@ -102,7 +108,7 @@ export const PRODUCT_IDS = {
   RS_5_AB: 36,
 } as const;
 
-// Константы для ID коробок
+// Constants for ID boxes
 export const BOX_IDS = {
   // RL коробки
   BLACK_RL_1: 1,
@@ -128,53 +134,30 @@ export const BOX_IDS = {
   CUSTOM_BOX_1: 13,
 } as const;
 
-// Константы для ID box products
+// Constants for ID box products
 export const BOX_PRODUCT_IDS = {
-  // Коробка 1 (black_RL) - картриджи RL
   RL_3_CARTRIDGES_1: 1,
   RL_5_CARTRIDGES_1: 2,
   RL_7_CARTRIDGES_1: 3,
-
-  // Коробка 2 (white_RL) - картриджи RL
-  RL_3_WHITE_CARTRIDGES: 4,
-  RL_5_WHITE_CARTRIDGES: 5,
-
-  // Коробка 3 (black_RL) - дополнительные RL
-  RL_9_CARTRIDGES: 6,
-  RL_11_CARTRIDGES: 7,
-
-  // Коробка 4 (black_RS) - картриджи RS
-  RS_3_CARTRIDGES: 8,
-  RS_5_CARTRIDGES: 9,
-
-  // Коробка 5 (black_RS) - дополнительные RS
-  RS_7_CARTRIDGES: 10,
-  RS_9_CARTRIDGES: 11,
-
-  // Коробка 6 (black_RM) - картриджи RM
-  RM_5_CARTRIDGES: 12,
-  RM_7_CARTRIDGES: 13,
-
-  // Коробка 7 (black_RM) - дополнительные RM
-  RM_9_CARTRIDGES: 14,
-  RM_11_CARTRIDGES: 15,
-
-  // Коробка 8 (black_M1) - картриджи M1
-  M1_5_CARTRIDGES: 16,
-  M1_7_CARTRIDGES: 17,
-
-  // Коробка 9 (white_M1) - картриджи M1
-  M1_9_WHITE_CARTRIDGES: 18,
-
-  // Коробка 10 (dark_blue_box) - краски и гели
-  BLACK_PAINT_1: 19,
-  TRANSFER_GEL_1: 20,
-
-  // Коробка 11 (mast_blue) - специальные продукты
-  BOX_PRODUCT_1: 21,
-
-  // Коробка 12 (green_box_table) - различные продукты
-  DYNAMIC_RL_3_1: 22,
-  DYNAMIC_RL_5_1: 23,
-  DYNAMIC_RL_7_1: 24,
+  RL_9_CARTRIDGES_1: 4,
+  RL_11_CARTRIDGES_1: 5,
+  RL_14_CARTRIDGES_1: 6,
+  RS_3_CARTRIDGES_1: 7,
+  RS_5_CARTRIDGES_1: 8,
+  RS_7_CARTRIDGES_1: 9,
+  RS_9_CARTRIDGES_1: 10,
+  RS_11_CARTRIDGES_1: 11,
+  RS_14_CARTRIDGES_1: 12,
+  RM_5_CARTRIDGES_1: 13,
+  RM_7_CARTRIDGES_1: 14,
+  RM_9_CARTRIDGES_1: 15,
+  RM_11_CARTRIDGES_1: 16,
+  RM_13_CARTRIDGES_1: 17,
+  RM_15_CARTRIDGES_1: 18,
+  RM_17_CARTRIDGES_1: 19,
+  RM_35_CARTRIDGES_1: 20,
+  M1_5_CARTRIDGES_1: 21,
+  M1_7_CARTRIDGES_1: 22,
+  M1_9_CARTRIDGES_1: 23,
+  BOX_1: 24,
 } as const;

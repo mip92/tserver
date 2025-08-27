@@ -7,7 +7,7 @@ import { AuthController } from "./auth.controller";
 import { AuthResolver } from "./auth.resolver";
 import { JwtStrategy } from "./strategies/jwt.strategy";
 import { LocalStrategy } from "./strategies/local.strategy";
-import { AdminRoleGuard } from "./guards/admin-role.guard";
+import { RolesGuard } from "./guards/admin-role.guard";
 import { PrismaModule } from "../../prisma/prisma.module";
 import { UserModule } from "../users/user.module";
 
@@ -34,8 +34,8 @@ import { UserModule } from "../users/user.module";
     AuthResolver,
     JwtStrategy,
     LocalStrategy,
-    AdminRoleGuard,
+    RolesGuard,
   ],
-  exports: [AuthService, AdminRoleGuard],
+  exports: [AuthService, RolesGuard],
 })
 export class AuthModule {}

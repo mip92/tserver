@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { logSection, logSuccess } from "./utils";
-import { ROLE_IDS, PrismaTransactionClient } from "./constants";
+import { ROLE_IDS, ROLE_NAMES, PrismaTransactionClient } from "./constants";
 
 export async function seedRoles(
   prisma: PrismaClient | PrismaTransactionClient
@@ -10,12 +10,12 @@ export async function seedRoles(
   const rolesData = [
     {
       id: ROLE_IDS.ADMIN,
-      name: "admin",
+      name: ROLE_NAMES.ADMIN,
       description: "Administrator role with full access",
     },
     {
       id: ROLE_IDS.USER,
-      name: "user",
+      name: ROLE_NAMES.USER,
       description: "Regular user role",
     },
   ];

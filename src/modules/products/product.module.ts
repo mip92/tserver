@@ -1,5 +1,4 @@
 import { Module } from "@nestjs/common";
-import { ProductController } from "./product.controller";
 import { ProductService } from "./product.service";
 import { ProductResolver } from "./product.resolver";
 import { PrismaModule } from "../../prisma/prisma.module";
@@ -7,7 +6,7 @@ import { AuthModule } from "../auth/auth.module";
 
 @Module({
   imports: [PrismaModule, AuthModule],
-  controllers: [ProductController],
+  controllers: [],
   providers: [ProductService, ProductResolver],
   exports: [ProductService],
 })

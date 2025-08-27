@@ -8,8 +8,9 @@ import {
   ProductUpdateInput,
 } from "./product.model";
 import { GraphQLAuthGuard } from "../auth/guards/graphql-auth.guard";
-import { AdminRoleGuard } from "../auth/guards/admin-role.guard";
-import { AdminRole } from "../auth/decorators/admin-role.decorator";
+import { RolesGuard } from "../auth/guards/admin-role.guard";
+import { Roles } from "../auth/decorators/admin-role.decorator";
+import { RoleType } from "../auth/types/role.types";
 
 @Resolver(() => Product)
 export class ProductResolver {
@@ -42,8 +43,8 @@ export class ProductResolver {
   }
 
   @Mutation(() => ProductWithBrand)
-  @UseGuards(GraphQLAuthGuard, AdminRoleGuard)
-  @AdminRole()
+  @UseGuards(GraphQLAuthGuard, RolesGuard)
+  @Roles([RoleType.ADMIN, RoleType.USER]) // Пример: доступ для админов и пользователей
   async createProduct(
     @Args("input") input: ProductInput
   ): Promise<ProductWithBrand> {
@@ -51,8 +52,8 @@ export class ProductResolver {
   }
 
   @Mutation(() => ProductWithBrand)
-  @UseGuards(GraphQLAuthGuard, AdminRoleGuard)
-  @AdminRole()
+  @UseGuards(GraphQLAuthGuard, RolesGuard)
+  @Roles([RoleType.ADMIN]) // Только для админов
   async updateProduct(
     @Args("id", { type: () => Int }) id: number,
     @Args("input") input: ProductUpdateInput
@@ -61,8 +62,8 @@ export class ProductResolver {
   }
 
   @Mutation(() => ProductWithBrand)
-  @UseGuards(GraphQLAuthGuard, AdminRoleGuard)
-  @AdminRole()
+  @UseGuards(GraphQLAuthGuard, RolesGuard)
+  @Roles([RoleType.ADMIN]) // Только для админов
   async deleteProduct(
     @Args("id", { type: () => Int }) id: number
   ): Promise<ProductWithBrand> {
