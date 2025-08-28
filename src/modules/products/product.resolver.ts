@@ -13,8 +13,6 @@ import { Roles } from "../auth/decorators/admin-role.decorator";
 import { RoleType } from "../auth/types/role.types";
 import { ProductsQueryDto } from "./dto/products-query.dto";
 import { PaginatedProductsResponse } from "./dto/paginated-products.dto";
-import { ProductType } from "@prisma/client";
-import { PaginatedResponse } from "../shared/pagination.types";
 
 @Resolver(() => Product)
 export class ProductResolver {
@@ -42,20 +40,6 @@ export class ProductResolver {
     @Args("id", { type: () => Int }) id: number
   ): Promise<ProductWithBrand> {
     return this.productService.findById(id);
-  }
-
-  @Query(() => [ProductWithBrand])
-  async productsByBrand(
-    @Args("brandId", { type: () => Int }) brandId: number
-  ): Promise<ProductWithBrand[]> {
-    return this.productService.findByBrandId(brandId);
-  }
-
-  @Query(() => [ProductWithBrand])
-  async productsByType(
-    @Args("type", { type: () => ProductType }) type: ProductType
-  ): Promise<ProductWithBrand[]> {
-    return this.productService.findByType(type);
   }
 
   @Mutation(() => ProductWithBrand)

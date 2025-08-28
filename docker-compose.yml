@@ -1,10 +1,55 @@
-version: "3.8"
 services:
+  # База данных PostgreSQL
   database:
-    image: postgres:alpine
+    image: postgres:15-alpine
+    container_name: tattoo-database
+    restart: unless-stopped
     ports:
-      - 5433:5432
+      - "${DB_PORT:-5433}:5432"
     environment:
-      POSTGRES_USER: tattoo
-      POSTGRES_PASSWORD: tattoo_pass
-      POSTGRES_DB: tattoo_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./prisma/migrations:/docker-entrypoint-initdb.d
+    networks:
+      - tattoo-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # NestJS сервер
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tattoo-server
+    restart: unless-stopped
+    ports:
+      - "${PORT:-4000}:3000"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3000
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_TOKEN_EXPIRES_IN: ${JWT_ACCESS_TOKEN_EXPIRES_IN:-15m}
+      JWT_REFRESH_TOKEN_EXPIRES_IN: ${JWT_REFRESH_TOKEN_EXPIRES_IN:-7d}
+    depends_on:
+      database:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - tattoo-network
+    command: npm run start:dev
+
+volumes:
+  postgres_data:
+
+networks:
+  tattoo-network:
+    driver: bridge

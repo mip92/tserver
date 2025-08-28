@@ -45,10 +45,21 @@ export class ProductService {
     }
 
     if (search) {
-      where.OR = [
+      const searchConditions: Prisma.ProductWhereInput[] = [
         { name: { contains: search, mode: "insensitive" } },
-        { type: { equals: search as ProductType } },
       ];
+
+      const matchingTypes = Object.values(ProductType).filter((type) =>
+        type.toLowerCase().includes(search.toLowerCase())
+      );
+
+      if (matchingTypes.length > 0) {
+        searchConditions.push({
+          type: { in: matchingTypes },
+        });
+      }
+
+      where.OR = searchConditions;
     }
 
     const orderBy: Prisma.ProductOrderByWithRelationInput = {};
