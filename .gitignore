@@ -95,3 +95,6 @@ Thumbs.db
 
 # Prisma
 prisma/migrations/
+
+# GitHub Actions
+!.github/workflows/

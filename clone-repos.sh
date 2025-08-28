@@ -8,18 +8,12 @@ if [ ! -f "docker-compose.prod.yml" ]; then
     exit 1
 fi
 
-# Клонируем backend (текущий репозиторий)
+# Клонируем backend репозиторий
 echo "🔧 Setting up backend..."
 if [ ! -d "backend" ]; then
-    echo "📁 Creating backend directory..."
-    mkdir -p backend
-    # Копируем текущие файлы в backend/
-    cp -r . backend/
-    # Убираем лишние файлы из backend
-    rm -rf backend/backend
-    rm -rf backend/frontend
-    rm -rf backend/.git
-    echo "✅ Backend files copied to backend/ directory"
+    echo "📁 Cloning backend repository..."
+    git clone https://github.com/mip92/tserver.git backend
+    echo "✅ Backend repository cloned to backend/ directory"
 else
     echo "✅ Backend directory already exists"
 fi
@@ -28,14 +22,7 @@ fi
 echo "🎨 Setting up frontend..."
 if [ ! -d "frontend" ]; then
     echo "📁 Cloning frontend repository..."
-    read -p "Enter your frontend repository URL: " FRONTEND_REPO
-    
-    if [ -z "$FRONTEND_REPO" ]; then
-        echo "❌ Frontend repository URL is required"
-        exit 1
-    fi
-    
-    git clone $FRONTEND_REPO frontend
+    git clone https://github.com/mip92/tfront.git frontend
     echo "✅ Frontend repository cloned to frontend/ directory"
 else
     echo "✅ Frontend directory already exists"
@@ -67,7 +54,7 @@ echo "🎉 Repository setup completed!"
 echo ""
 echo "📋 Next steps:"
 echo "1. Update NEXT_PUBLIC_API_URL in .env with your domain"
-echo "2. Make sure frontend/ has a Dockerfile"
+echo "2. Frontend will use npm run start (no Dockerfile needed)"
 echo "3. Run: docker-compose -f docker-compose.prod.yml up -d"
 echo ""
 echo "📁 Directory structure:"

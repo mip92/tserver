@@ -41,13 +41,14 @@ services:
       - tattoo-network
     command: npm run start:prod
 
-  # Next.js Frontend
+  # Next.js Frontend (без Docker)
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: node:18-alpine
     container_name: tattoo-frontend-prod
     restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
     environment:
       NODE_ENV: production
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://backend:3000}
@@ -55,7 +56,7 @@ services:
       - backend
     networks:
       - tattoo-network
-    command: npm start
+    command: sh -c "npm install && npm run start"
 
   # Nginx Reverse Proxy
   nginx:
