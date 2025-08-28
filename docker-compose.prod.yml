@@ -1,0 +1,54 @@
+version: "3.8"
+
+services:
+  database:
+    image: postgres:alpine
+    container_name: tattoo-database-prod
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-tattoo_db}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-tattoo_db}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tattoo-network
+
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tattoo-server-prod
+    ports:
+      - "${PORT:-4000}:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      PORT: 3000
+    depends_on:
+      database:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - tattoo-network
+    command: npm run start:prod
+
+volumes:
+  postgres_data_prod:
+
+networks:
+  tattoo-network:
+    driver: bridge
