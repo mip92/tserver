@@ -110,28 +110,35 @@ export const PRODUCT_IDS = {
 
 // Constants for ID boxes
 export const BOX_IDS = {
+  // Главные коробки по категориям
+  MAIN_RL_BOX: 1, // Главная коробка для RL игл
+  MAIN_RS_BOX: 2, // Главная коробка для RS игл
+  MAIN_RM_BOX: 3, // Главная коробка для RM игл
+  MAIN_M1_BOX: 4, // Главная коробка для M1 игл
+  MAIN_OTHER_BOX: 5, // Главная коробка для остального
+
   // RL коробки
-  BLACK_RL_1: 1,
-  WHITE_RL_1: 2,
-  BLACK_RL_2: 3,
+  BLACK_RL_1: 6,
+  WHITE_RL_1: 7,
+  BLACK_RL_2: 8,
 
   // RS коробки
-  BLACK_RS_1: 4,
-  BLACK_RS_2: 5,
+  BLACK_RS_1: 9,
+  BLACK_RS_2: 10,
 
   // RM коробки
-  BLACK_RM_1: 6,
-  BLACK_RM_2: 7,
+  BLACK_RM_1: 11,
+  BLACK_RM_2: 12,
 
   // M1 коробки
-  BLACK_M1_1: 8,
-  WHITE_M1_1: 9,
+  BLACK_M1_1: 13,
+  WHITE_M1_1: 14,
 
   // Обычные коробки
-  DARK_BLUE_BOX_1: 10,
-  MAST_BLUE_1: 11,
-  GREEN_BOX_TABLE_1: 12,
-  CUSTOM_BOX_1: 13,
+  DARK_BLUE_BOX_1: 15,
+  MAST_BLUE_1: 16,
+  GREEN_BOX_TABLE_1: 17,
+  CUSTOM_BOX_1: 18,
 } as const;
 
 // Constants for ID inventory items

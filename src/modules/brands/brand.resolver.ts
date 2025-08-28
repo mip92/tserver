@@ -14,11 +14,6 @@ import { Brand } from "../shared";
 export class BrandResolver {
   constructor(private readonly brandService: BrandService) {}
 
-  @Query(() => [Brand])
-  async brands(): Promise<Brand[]> {
-    return this.brandService.findAll();
-  }
-
   @Query(() => PaginatedBrandsResponse)
   async brandsWithPagination(
     @Args("query") query: BrandsQueryDto
@@ -29,13 +24,6 @@ export class BrandResolver {
   @Query(() => Brand)
   async brand(@Args("id", { type: () => Int }) id: number): Promise<Brand> {
     return this.brandService.findById(id);
-  }
-
-  @Query(() => [Brand])
-  async brandsByIds(
-    @Args("ids", { type: () => [Int] }) ids: number[]
-  ): Promise<Brand[]> {
-    return this.brandService.findByIds(ids);
   }
 
   @Mutation(() => Brand)

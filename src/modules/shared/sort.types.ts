@@ -20,6 +20,15 @@ export enum BrandSortField {
   UPDATED_AT = "updatedAt",
 }
 
+export enum BoxTypeSortField {
+  ID = "id",
+  NAME = "name",
+  TYPE = "type",
+  QUANTITY = "quantity",
+  CREATED_AT = "createdAt",
+  UPDATED_AT = "updatedAt",
+}
+
 registerEnumType(SortOrder, {
   name: "SortOrder",
   description: "Порядок сортировки",
@@ -35,3 +44,7 @@ registerEnumType(BrandSortField, {
   description: "Поле для сортировки брендов",
 });
 
+registerEnumType(BoxTypeSortField, {
+  name: "BoxTypeSortField",
+  description: "Поле для сортировки типов коробок",
+});

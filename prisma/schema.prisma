@@ -74,6 +74,8 @@ model Box {
   inventoryItems  InventoryItem[]  // Переименовываем связь
 
   @@map("boxes")
+  
+
 }
 
 model BoxType {
