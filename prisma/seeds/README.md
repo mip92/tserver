@@ -1,73 +1,77 @@
 # Database Seeds
 
-Этот каталог содержит сиды для заполнения базы данных тестовыми данными.
+## Overview
+This directory contains seed files for populating the database with initial data.
 
-## Структура файлов
+## Recent Changes (Latest Update)
 
-- `index.ts` - главный файл, который запускает все сиды
-- `roles.seed.ts` - сиды для ролей пользователей
-- `users.seed.ts` - сиды для пользователей
-- `brands.seed.ts` - сиды для брендов
-- `box-types.seed.ts` - сиды для типов коробок
-- `boxes.seed.ts` - сиды для коробок
-- `products.seed.ts` - сиды для продуктов
-- `box-products.seed.ts` - сиды для связей между коробками и продуктами
-- `utils.ts` - утилиты для логирования и работы с Prisma
+### Table Renaming and Structure Improvements
+- **Renamed table**: `boxes_products` → `inventory_items`
+- **Added box hierarchy support**: Boxes can now contain other boxes
+- **Improved data structure**: Added fields for better inventory management
 
-## Запуск всех сидов
+### New Schema Structure
 
-```bash
-npm run seed
+#### Box Model (Enhanced)
+```prisma
+model Box {
+  id              Int              @id @default(autoincrement())
+  boxTypeId       Int?
+  name            String?          // Box name/description
+  description     String?          // Additional box details
+  parentBoxId     Int?             // Parent box ID for hierarchy
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  boxType         BoxType?         @relation(fields: [boxTypeId], references: [id])
+  parentBox       Box?             @relation("BoxHierarchy", fields: [parentBoxId], references: [id])
+  childBoxes      Box[]            @relation("BoxHierarchy")
+  inventoryItems  InventoryItem[]
+}
 ```
 
-## Порядок выполнения
+#### InventoryItem Model (Renamed from BoxProduct)
+```prisma
+model InventoryItem {
+  id            Int       @id @default(autoincrement())
+  name          String
+  quantity      Int
+  date          DateTime?
+  boxId         Int?
+  productId     Int
+  purchasePrice Int       @default(0)
+  status        String?
+  notes         String?   // Additional notes
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  box           Box?      @relation(fields: [boxId], references: [id])
+  product       Product   @relation(fields: [productId], references: [id])
+}
+```
 
-Сиды выполняются в следующем порядке из-за зависимостей:
+### Benefits of New Structure
+1. **Better naming**: `inventory_items` is more descriptive than `boxes_products`
+2. **Hierarchical organization**: Boxes can be nested (e.g., "Large Box" contains "Small Box 1", "Small Box 2")
+3. **Improved data management**: Added fields for better organization and tracking
+4. **Scalability**: Easier to manage complex inventory structures
 
-1. **Роли** - создание ролей пользователей
-2. **Пользователи** - создание пользователей (зависит от ролей)
-3. **Бренды** - создание брендов
-4. **Типы коробок** - создание типов коробок
-5. **Продукты** - создание продуктов (зависит от брендов)
-6. **Коробки** - создание коробок (зависит от типов коробок)
-7. **Box Products** - создание связей между коробками и продуктами (зависит от коробок и продуктов)
+### Migration Required
+To apply these changes, you need to:
+1. Run the Prisma migration: `npx prisma migrate dev`
+2. Update the Prisma client: `npx prisma generate`
+3. Update your application code to use the new model names
 
-## Данные по умолчанию
+## Seed Files
+- `roles.seed.ts` - User roles and permissions
+- `users.seed.ts` - Initial user accounts
+- `brands.seed.ts` - Product brands
+- `box-types.seed.ts` - Box type definitions
+- `products.seed.ts` - Product catalog
+- `boxes.seed.ts` - Box definitions
+- `inventory-items.seed.ts` - Inventory items (renamed from box-products)
 
-### Роли
-
-- `admin` - администратор с полным доступом
-- `user` - обычный пользователь
-
-### Пользователи
-
-- Администратор: `19mip92@gmail.com` / `admin123`
-
-### Бренды
-
-- Yellow Dragonfly
-- Dynamic
-- Poseidon
-- AB
-- Stencil Stuff
-- Mast
-
-### Типы коробок
-
-- RL коробки (black_RL, white_RL)
-- RS коробки (black_RS)
-- RM коробки (black_RM)
-- M1 коробки (black_M1, white_M1)
-- Обычные коробки (dark_blue_box, mast_blue, green_box_table, custom_box)
-
-### Продукты
-
-- 36 различных продуктов включая картриджи, краски и гели
-
-### Коробки
-
-- 13 коробок различных типов
-
-### Box Products
-
-- 24 связи между коробками и продуктами с количеством, ценами и статусами
+## Running Seeds
+```bash
+npm run seed
+# or
+npx ts-node prisma/seeds/index.ts
+```

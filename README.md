@@ -6,7 +6,7 @@
 [travis-url]: https://travis-ci.org/nestjs/nest
 [linux-image]: https://img.shields.io/travis/nestjs/nest/master.svg?label=linux
 [linux-url]: https://travis-ci.org/nestjs/nest
-  
+
   <p align="center">A progressive <a href="http://nodejs.org" target="blank">Node.js</a> framework for building efficient and scalable server-side applications, heavily inspired by <a href="https://angular.io" target="blank">Angular</a>.</p>
     <p align="center">
 <a href="https://www.npmjs.com/~nestjscore"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
@@ -47,6 +47,62 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
+## Database Management
+
+### Prisma Migrations
+
+```bash
+# Create and apply a new migration
+$ npx prisma migrate dev --name your_migration_name
+
+# Apply existing migrations (production)
+$ npx prisma migrate deploy
+
+# Reset database (development only - DESTROYS ALL DATA)
+$ npx prisma migrate reset --force
+
+# View migration status
+$ npx prisma migrate status
+
+# Generate Prisma client after schema changes
+$ npx prisma generate
+```
+
+### Database Seeding
+
+```bash
+# Run all seeds
+$ npm run seed
+
+# Or manually with ts-node
+$ npx ts-node prisma/seeds/index.ts
+
+# Using Prisma seed command
+$ npx prisma db seed
+```
+
+### Docker Commands
+
+```bash
+# Start services
+$ docker-compose up -d
+
+# Stop services
+$ docker-compose down
+
+# View logs
+$ docker-compose logs -f
+
+# Run migrations in Docker container
+$ docker exec -it tattoo-server npx prisma migrate dev --name your_migration_name
+
+# Run seeds in Docker container
+$ docker exec -it tattoo-server npm run seed
+
+# Generate Prisma client in Docker container
+$ docker exec -it tattoo-server npx prisma generate
+```
+
 ## Test
 
 ```bash
@@ -72,5 +128,6 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 
 ## License
 
-  Nest is [MIT licensed](LICENSE).
+Nest is [MIT licensed](LICENSE).
+
 # tserver

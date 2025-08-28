@@ -134,8 +134,8 @@ export const BOX_IDS = {
   CUSTOM_BOX_1: 13,
 } as const;
 
-// Constants for ID box products
-export const BOX_PRODUCT_IDS = {
+// Constants for ID inventory items
+export const INVENTORY_ITEM_IDS = {
   RL_3_CARTRIDGES_1: 1,
   RL_5_CARTRIDGES_1: 2,
   RL_7_CARTRIDGES_1: 3,

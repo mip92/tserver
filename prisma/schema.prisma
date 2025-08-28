@@ -61,12 +61,17 @@ model RefreshToken {
 }
 
 model Box {
-  id        Int          @id @default(autoincrement())
-  boxTypeId Int?
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
-  boxType   BoxType?     @relation(fields: [boxTypeId], references: [id])
-  products  BoxProduct[]
+  id              Int              @id @default(autoincrement())
+  boxTypeId       Int?
+  name            String?          // Добавляем название коробки
+  description     String?          // Описание коробки
+  parentBoxId     Int?             // ID родительской коробки (для иерархии)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  boxType         BoxType?         @relation(fields: [boxTypeId], references: [id])
+  parentBox       Box?             @relation("BoxHierarchy", fields: [parentBoxId], references: [id])
+  childBoxes      Box[]            @relation("BoxHierarchy")
+  inventoryItems  InventoryItem[]  // Переименовываем связь
 
   @@map("boxes")
 }
@@ -83,7 +88,7 @@ model BoxType {
   @@map("box_type")
 }
 
-model BoxProduct {
+model InventoryItem {
   id            Int       @id @default(autoincrement())
   name          String
   quantity      Int
@@ -92,23 +97,24 @@ model BoxProduct {
   productId     Int
   purchasePrice Int       @default(0)
   status        String?
+  notes         String?   // Дополнительные заметки
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   box           Box?      @relation(fields: [boxId], references: [id])
   product       Product   @relation(fields: [productId], references: [id])
 
-  @@map("boxes_products")
+  @@map("inventory_items")
 }
 
 model Product {
-  id          Int          @id @default(autoincrement())
-  type        ProductType
-  name        String
-  brandId     Int
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  boxProducts BoxProduct[]
-  brand       Brand        @relation(fields: [brandId], references: [id])
+  id             Int             @id @default(autoincrement())
+  type           ProductType
+  name           String
+  brandId        Int
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  inventoryItems InventoryItem[] // Переименовываем связь
+  brand          Brand           @relation(fields: [brandId], references: [id])
 
   @@map("products")
 }

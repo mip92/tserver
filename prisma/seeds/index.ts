@@ -5,7 +5,7 @@ import { seedBrands } from "./brands.seed";
 import { seedBoxTypes } from "./box-types.seed";
 import { seedProducts } from "./products.seed";
 import { seedBoxes } from "./boxes.seed";
-import { seedBoxProducts } from "./box-products.seed";
+import { seedInventoryItems } from "./inventory-items.seed";
 
 export async function runSeeds() {
   const prisma = new PrismaClient();
@@ -23,7 +23,7 @@ export async function runSeeds() {
       await seedBoxTypes(tx);
       await seedProducts(tx);
       await seedBoxes(tx);
-      await seedBoxProducts(tx);
+      await seedInventoryItems(tx);
 
       console.log("✅ Transaction completed successfully!");
     });

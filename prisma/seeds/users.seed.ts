@@ -15,7 +15,7 @@ export async function seedUsers(
       email: "admin@example.com",
       phone: "+1234567890",
       isActive: true,
-      password: "hashedPassword123", // В реальном приложении должен быть хеш
+      password: await bcrypt.hash("admin123", 10),
       roleId: ROLE_IDS.ADMIN,
     },
   ];
