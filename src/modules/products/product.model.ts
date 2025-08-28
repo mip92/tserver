@@ -6,21 +6,7 @@ import {
   GraphQLISODateTime,
 } from "@nestjs/graphql";
 import { ProductType } from "@prisma/client";
-
-@ObjectType()
-export class Brand {
-  @Field(() => Int)
-  id: number;
-
-  @Field(() => String)
-  name: string;
-
-  @Field(() => GraphQLISODateTime)
-  createdAt: Date;
-
-  @Field(() => GraphQLISODateTime)
-  updatedAt: Date;
-}
+import { Brand } from "../shared/brand.types";
 
 @ObjectType()
 export class Product {

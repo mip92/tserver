@@ -8,6 +8,7 @@ import { RoleModule } from "./modules/roles/role.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import configuration from "./config/configuration";
 import { ProductModule } from "./modules/products/product.module";
+import { BrandModule } from "./modules/brands/brand.module";
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { ProductModule } from "./modules/products/product.module";
     RoleModule,
     AuthModule,
     ProductModule,
+    BrandModule,
   ],
 })
 export class AppModule {}

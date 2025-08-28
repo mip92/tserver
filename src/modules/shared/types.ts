@@ -32,3 +32,7 @@ export class UserBasic {
   @Field(() => GraphQLISODateTime)
   updatedAt: Date;
 }
+
+export * from "./brand.types";
+export * from "./sort.types";
+export * from "./pagination.dto";

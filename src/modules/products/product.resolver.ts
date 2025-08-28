@@ -27,12 +27,7 @@ export class ProductResolver {
   async productsWithPagination(
     @Args("query") query: ProductsQueryDto
   ): Promise<PaginatedProductsResponse> {
-    const result = await this.productService.findWithPagination(query);
-
-    return {
-      rows: result.rows,
-      total: result.total,
-    };
+    return await this.productService.findWithPagination(query);
   }
 
   @Query(() => ProductWithBrand)
