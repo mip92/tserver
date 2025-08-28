@@ -64,4 +64,3 @@ export class BrandResolver {
     return this.brandService.deleteBrand(id);
   }
 }
-
