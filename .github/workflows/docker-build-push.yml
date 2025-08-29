@@ -84,6 +84,15 @@ jobs:
             echo "Changes detected, proceeding with deployment"
           fi
 
+      - name: Debug repository dispatch
+        if: steps.check-changes.outputs.no_changes == 'false'
+        run: |
+          echo "🔍 Debug info:"
+          echo "Repository: mip92/tattoo"
+          echo "Event type: deploy-backend"
+          echo "Token exists: ${{ secrets.PAT_TOKEN != '' }}"
+          echo "Token length: ${#PAT_TOKEN}"
+
       - name: Trigger deployment action
         if: steps.check-changes.outputs.no_changes == 'false'
         uses: peter-evans/repository-dispatch@v2
@@ -92,3 +101,10 @@ jobs:
           repository: mip92/tattoo
           event-type: deploy-backend
           client-payload: '{"backend_image": "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"}'
+
+      - name: Confirm dispatch sent
+        if: steps.check-changes.outputs.no_changes == 'false'
+        run: |
+          echo "✅ Repository dispatch event sent to mip92/tattoo"
+          echo "Event type: deploy-backend"
+          echo "Backend image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
