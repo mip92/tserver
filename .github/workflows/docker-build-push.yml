@@ -9,6 +9,24 @@ env:
   IMAGE_NAME: mip92/tattoo-server
 
 jobs:
+  test-access:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Test access to tattoo repository
+        uses: actions/checkout@v4
+        with:
+          repository: mip92/tattoo
+          token: ${{ secrets.PAT_TOKEN }}
+          path: tattoo
+
+      - name: Show repository info
+        run: |
+          cd tattoo
+          echo "Repository accessed successfully!"
+          echo "Current branch: $(git branch --show-current)"
+          echo "Last commit: $(git log -1 --oneline)"
+
   build-and-push:
     runs-on: ubuntu-latest
 
@@ -40,6 +58,7 @@ jobs:
 
       - name: Success message
         run: echo "Docker image successfully built and pushed to Docker Hub!"
+
   deploy-to-nginx:
     needs: build-and-push
     runs-on: ubuntu-latest
