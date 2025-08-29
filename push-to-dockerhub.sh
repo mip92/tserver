@@ -30,6 +30,7 @@ echo "📦 Image: ${USERNAME}/${IMAGE_NAME}:${TAG}"
 echo "🏗️  Platforms: linux/amd64, linux/arm64"
 
 # Создаем или используем существующий multi-arch builder
+
 docker buildx create --use --name multiarch-builder 2>/dev/null || docker buildx use multiarch-builder 2>/dev/null || true
 
 # Собираем и пушим образ
