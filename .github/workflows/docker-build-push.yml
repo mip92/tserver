@@ -40,24 +40,23 @@ jobs:
 
       - name: Success message
         run: echo "Docker image successfully built and pushed to Docker Hub!"
-
   deploy-to-nginx:
     needs: build-and-push
     runs-on: ubuntu-latest
     if: success()
 
     steps:
-      - name: Checkout tattoo-nginx repository
+      - name: Checkout tattoo repository
         uses: actions/checkout@v4
         with:
-          repository: mip92/tattoo-nginx
+          repository: mip92/tattoo
           token: ${{ secrets.PAT_TOKEN }}
-          path: tattoo-nginx
+          path: tattoo
 
       - name: Check for changes
         id: check-changes
         run: |
-          cd tattoo-nginx
+          cd tattoo
           if git diff --quiet HEAD~1 HEAD; then
             echo "no_changes=true" >> $GITHUB_OUTPUT
             echo "No changes detected, skipping deployment"
@@ -71,6 +70,6 @@ jobs:
         uses: peter-evans/repository-dispatch@v2
         with:
           token: ${{ secrets.PAT_TOKEN }}
-          repository: mip92/tattoo-nginx
+          repository: mip92/tattoo
           event-type: deploy-backend
           client-payload: '{"backend_image": "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"}'
