@@ -6,6 +6,7 @@ export async function seedBrands(
   prisma: PrismaClient | PrismaTransactionClient
 ) {
   logSection("Seeding Brands");
+
   const brandsData: Prisma.Enumerable<Prisma.BrandCreateManyInput> = [
     {
       id: BRAND_IDS.YELLOW_DRAGONFLY,
