@@ -6,6 +6,7 @@ export async function seedBoxTypes(
   prisma: PrismaClient | PrismaTransactionClient
 ) {
   logSection("Seeding Box Types");
+
   const boxTypesData: Prisma.Enumerable<Prisma.BoxTypeCreateManyInput> = [
     {
       id: BOX_TYPE_IDS.BLACK_RL,
