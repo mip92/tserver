@@ -10,6 +10,7 @@ import configuration from "./config/configuration";
 import { ProductModule } from "./modules/products/product.module";
 import { BrandModule } from "./modules/brands/brand.module";
 import { BoxTypeModule } from "./modules/box-types/box-type.module";
+import { HealthModule } from "./modules/health/health.module";
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { BoxTypeModule } from "./modules/box-types/box-type.module";
     ProductModule,
     BrandModule,
     BoxTypeModule,
+    HealthModule,
   ],
 })
 export class AppModule {}
