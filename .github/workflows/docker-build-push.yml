@@ -129,6 +129,6 @@ jobs:
                 "backend_image": "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
               }
             }' \
-            "https://api.github.com/repos/mip92/dispatches"
+            "https://api.github.com/repos/mip92/tattoo/dispatches"
 
           echo "✅ Repository dispatch event sent via API"
