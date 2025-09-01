@@ -11,6 +11,7 @@ export class BrandService {
 
   async findAll(): Promise<Brand[]> {
     const brands = await this.prisma.brand.findMany();
+
     return brands as Brand[];
   }
 
@@ -110,4 +111,3 @@ export class BrandService {
     return brands;
   }
 }
-
