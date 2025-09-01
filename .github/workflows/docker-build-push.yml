@@ -56,7 +56,7 @@ jobs:
           echo "   docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
           echo "   docker-compose -f docker-compose.prod.yml up -d"
 
-  notify-frontend:
+  deploy-to-nginx:
     needs: build-and-push
     runs-on: ubuntu-latest
     if: success()
@@ -69,25 +69,66 @@ jobs:
           token: ${{ secrets.PAT_TOKEN }}
           path: tattoo
 
-      - name: Trigger frontend deployment
+      - name: Check for changes
+        id: check-changes
+        run: |
+          cd tattoo
+          if git diff --quiet HEAD~1 HEAD; then
+            echo "no_changes=true" >> $GITHUB_OUTPUT
+            echo "No changes detected, skipping deployment"
+          else
+            echo "no_changes=false" >> $GITHUB_OUTPUT
+            echo "Changes detected, proceeding with deployment"
+          fi
+
+      - name: Debug repository dispatch
+        if: steps.check-changes.outputs.no_changes == 'false'
         env:
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
-          echo "🚀 Notifying frontend about backend update..."
+          echo "🔍 Debug info:"
+          echo "Repository: mip92/tattoo"
+          echo "Event type: deploy-backend"
+          echo "Token exists: $([[ -n "$PAT_TOKEN" ]] && echo true || echo false)"
+          echo "Token length: ${#PAT_TOKEN}"
+          echo "Token preview: ${PAT_TOKEN:0:10}..." # Показываем первые 10 символов
 
-          # Отправляем уведомление о новом backend образе
+      - name: Test API access
+        if: steps.check-changes.outputs.no_changes == 'false'
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          echo "🧪 Testing API access to tattoo repository..."
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: token $PAT_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/mip92/tattoo")
+          echo "API Response Code: $RESPONSE"
+
+          if [ "$RESPONSE" = "200" ]; then
+            echo "✅ API access successful"
+          else
+            echo "❌ API access failed with code: $RESPONSE"
+          fi
+
+      - name: Trigger deployment action
+        if: steps.check-changes.outputs.no_changes == 'false'
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          echo "🚀 Triggering deployment action in tattoo repository..."
+
+          # Используем GitHub API для repository_dispatch
           curl -X POST \
             -H "Authorization: token $PAT_TOKEN" \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Content-Type: application/json" \
             -d '{
-              "event_type": "backend-updated",
+              "event_type": "deploy-backend",
               "client_payload": {
-                "backend_image": "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}",
-                "backend_version": "${{ github.sha }}",
-                "build_number": "${{ github.run_number }}"
+                "backend_image": "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
               }
             }' \
-            "https://api.github.com/repos/mip92/tattoo/dispatches"
+            "https://api.github.com/repos/mip92/dispatches"
 
-          echo "✅ Frontend notification sent!"
+          echo "✅ Repository dispatch event sent via API"
