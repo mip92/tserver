@@ -1,32 +1,15 @@
-name: Build and Push Docker Image
+name: Build and Push Backend Docker Image
 
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 env:
   REGISTRY: docker.io
   IMAGE_NAME: mip92/tattoo-server
 
 jobs:
-  test-access:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Test access to tattoo repository
-        uses: actions/checkout@v4
-        with:
-          repository: mip92/tattoo
-          token: ${{ secrets.PAT_TOKEN }}
-          path: tattoo
-
-      - name: Show repository info
-        run: |
-          cd tattoo
-          echo "Repository accessed successfully!"
-          echo "Current branch: $(git branch --show-current)"
-          echo "Last commit: $(git log -1 --oneline)"
-
   build-and-push:
     runs-on: ubuntu-latest
 
@@ -53,13 +36,27 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:v${{ github.run_number }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          labels: |
+            org.opencontainers.image.title=Tattoo Backend Server
+            org.opencontainers.image.description=NestJS Backend API for Tattoo application
+            org.opencontainers.image.version=${{ github.sha }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
 
       - name: Success message
-        run: echo "Docker image successfully built and pushed to Docker Hub!"
+        run: |
+          echo "✅ Docker image successfully built and pushed to Docker Hub!"
+          echo "🐳 Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+          echo "🏷️  Tags: latest, ${{ github.sha }}, v${{ github.run_number }}"
+          echo ""
+          echo "📋 Для запуска на production сервере:"
+          echo "   docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+          echo "   docker-compose -f docker-compose.prod.yml up -d"
 
-  deploy-to-nginx:
+  notify-frontend:
     needs: build-and-push
     runs-on: ubuntu-latest
     if: success()
@@ -72,66 +69,25 @@ jobs:
           token: ${{ secrets.PAT_TOKEN }}
           path: tattoo
 
-      - name: Check for changes
-        id: check-changes
-        run: |
-          cd tattoo
-          if git diff --quiet HEAD~1 HEAD; then
-            echo "no_changes=true" >> $GITHUB_OUTPUT
-            echo "No changes detected, skipping deployment"
-          else
-            echo "no_changes=false" >> $GITHUB_OUTPUT
-            echo "Changes detected, proceeding with deployment"
-          fi
-
-      - name: Debug repository dispatch
-        if: steps.check-changes.outputs.no_changes == 'false'
+      - name: Trigger frontend deployment
         env:
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
-          echo "🔍 Debug info:"
-          echo "Repository: mip92/tattoo"
-          echo "Event type: deploy-backend"
-          echo "Token exists: $([[ -n "$PAT_TOKEN" ]] && echo true || echo false)"
-          echo "Token length: ${#PAT_TOKEN}"
-          echo "Token preview: ${PAT_TOKEN:0:10}..." # Показываем первые 10 символов
+          echo "🚀 Notifying frontend about backend update..."
 
-      - name: Test API access
-        if: steps.check-changes.outputs.no_changes == 'false'
-        env:
-          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
-        run: |
-          echo "🧪 Testing API access to tattoo repository..."
-          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
-            -H "Authorization: token $PAT_TOKEN" \
-            -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/repos/mip92/tattoo")
-          echo "API Response Code: $RESPONSE"
-
-          if [ "$RESPONSE" = "200" ]; then
-            echo "✅ API access successful"
-          else
-            echo "❌ API access failed with code: $RESPONSE"
-          fi
-
-      - name: Trigger deployment action
-        if: steps.check-changes.outputs.no_changes == 'false'
-        env:
-          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
-        run: |
-          echo "🚀 Triggering deployment action in tattoo repository..."
-
-          # Используем GitHub API для repository_dispatch
+          # Отправляем уведомление о новом backend образе
           curl -X POST \
             -H "Authorization: token $PAT_TOKEN" \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Content-Type: application/json" \
             -d '{
-              "event_type": "deploy-backend",
+              "event_type": "backend-updated",
               "client_payload": {
-                "backend_image": "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+                "backend_image": "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}",
+                "backend_version": "${{ github.sha }}",
+                "build_number": "${{ github.run_number }}"
               }
             }' \
             "https://api.github.com/repos/mip92/tattoo/dispatches"
 
-          echo "✅ Repository dispatch event sent via API"
+          echo "✅ Frontend notification sent!"
