@@ -36,7 +36,7 @@ export class UserService {
   }
 
   async createUser(userData: UserInput): Promise<UserWithRole> {
-    // Хешируем пароль перед сохранением
+    // Hash password before saving
     const hashedPassword = await bcrypt.hash(userData.password, 10);
 
     const user = await this.prisma.user.create({
@@ -56,7 +56,7 @@ export class UserService {
   ): Promise<UserWithRole> {
     const updateData: any = { ...userData };
 
-    // Если обновляется пароль, хешируем его
+    // If password is being updated, hash it
     if (userData.password) {
       updateData.password = await bcrypt.hash(userData.password, 10);
     }

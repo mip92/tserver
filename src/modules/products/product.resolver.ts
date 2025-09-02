@@ -18,12 +18,9 @@ import { PaginatedProductsResponse } from "./dto/paginated-products.dto";
 export class ProductResolver {
   constructor(private readonly productService: ProductService) {}
 
-  @Query(() => [ProductWithBrand])
-  async products(): Promise<ProductWithBrand[]> {
-    return this.productService.findAll();
-  }
-
   @Query(() => PaginatedProductsResponse)
+  @UseGuards(GraphQLAuthGuard, RolesGuard)
+  @Roles([RoleType.ADMIN, RoleType.USER])
   async productsWithPagination(
     @Args("query") query: ProductsQueryDto
   ): Promise<PaginatedProductsResponse> {
@@ -39,7 +36,7 @@ export class ProductResolver {
 
   @Mutation(() => ProductWithBrand)
   @UseGuards(GraphQLAuthGuard, RolesGuard)
-  @Roles([RoleType.ADMIN, RoleType.USER]) // Пример: доступ для админов и пользователей
+  @Roles([RoleType.ADMIN, RoleType.USER]) // Access for admins and users
   async createProduct(
     @Args("input") input: ProductInput
   ): Promise<ProductWithBrand> {
@@ -48,7 +45,7 @@ export class ProductResolver {
 
   @Mutation(() => ProductWithBrand)
   @UseGuards(GraphQLAuthGuard, RolesGuard)
-  @Roles([RoleType.ADMIN]) // Только для админов
+  @Roles([RoleType.ADMIN]) // Admin only
   async updateProduct(
     @Args("id", { type: () => Int }) id: number,
     @Args("input") input: ProductUpdateInput
@@ -58,7 +55,7 @@ export class ProductResolver {
 
   @Mutation(() => ProductWithBrand)
   @UseGuards(GraphQLAuthGuard, RolesGuard)
-  @Roles([RoleType.ADMIN]) // Только для админов
+  @Roles([RoleType.ADMIN]) // Admin only
   async deleteProduct(
     @Args("id", { type: () => Int }) id: number
   ): Promise<ProductWithBrand> {

@@ -15,7 +15,7 @@ export class BoxTypeService {
 
   async findAll(): Promise<BoxType[]> {
     const boxTypes = await this.prisma.boxType.findMany();
-    return boxTypes as BoxType[];
+    return boxTypes;
   }
 
   async findWithPagination({
@@ -69,7 +69,7 @@ export class BoxTypeService {
       throw new NotFoundException(`BoxType with ID ${id} not found`);
     }
 
-    return boxType as BoxType;
+    return boxType;
   }
 
   async createBoxType(boxTypeData: BoxTypeInput): Promise<BoxType> {
@@ -77,7 +77,7 @@ export class BoxTypeService {
       data: boxTypeData,
     });
 
-    return boxType as BoxType;
+    return boxType;
   }
 
   async updateBoxType(
@@ -89,7 +89,7 @@ export class BoxTypeService {
       data: boxTypeData,
     });
 
-    return boxType as BoxType;
+    return boxType;
   }
 
   async deleteBoxType(id: number): Promise<BoxType> {
@@ -97,14 +97,14 @@ export class BoxTypeService {
       where: { id },
     });
 
-    return boxType as BoxType;
+    return boxType;
   }
 
   async findByIds(ids: number[]): Promise<BoxType[]> {
     const boxTypes = await this.prisma.boxType.findMany({
       where: { id: { in: ids } },
     });
-    return boxTypes as BoxType[];
+    return boxTypes;
   }
 
   async getBoxTypesWithBoxCount(): Promise<

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
-import { BrandWithProducts, BrandInput, BrandUpdateInput } from "./brand.model";
+import { BrandInput, BrandUpdateInput } from "./brand.model";
 import { BrandsQueryDto } from "./dto/brands-query.dto";
 import { PaginatedResponse } from "../shared/pagination.types";
 import { Brand, Prisma } from "@prisma/client";
@@ -12,7 +12,7 @@ export class BrandService {
   async findAll(): Promise<Brand[]> {
     const brands = await this.prisma.brand.findMany();
 
-    return brands as Brand[];
+    return brands;
   }
 
   async findWithPagination({
@@ -63,7 +63,7 @@ export class BrandService {
       throw new NotFoundException(`Brand with ID ${id} not found`);
     }
 
-    return brand as Brand;
+    return brand;
   }
 
   async createBrand(brandData: BrandInput): Promise<Brand> {
@@ -71,7 +71,7 @@ export class BrandService {
       data: brandData,
     });
 
-    return brand as Brand;
+    return brand;
   }
 
   async updateBrand(id: number, brandData: BrandUpdateInput): Promise<Brand> {
@@ -80,7 +80,7 @@ export class BrandService {
       data: brandData,
     });
 
-    return brand as Brand;
+    return brand;
   }
 
   async deleteBrand(id: number): Promise<Brand> {
@@ -88,14 +88,14 @@ export class BrandService {
       where: { id },
     });
 
-    return brand as Brand;
+    return brand;
   }
 
   async findByIds(ids: number[]): Promise<Brand[]> {
     const brands = await this.prisma.brand.findMany({
       where: { id: { in: ids } },
     });
-    return brands as Brand[];
+    return brands;
   }
 
   async getBrandsWithProductCount(): Promise<

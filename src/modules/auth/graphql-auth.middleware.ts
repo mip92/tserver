@@ -20,8 +20,8 @@ export class GraphQLAuthMiddleware implements NestMiddleware {
         const payload = this.jwtService.verify(token);
         req.user = payload;
       } catch (error) {
-        // Токен недействителен, но продолжаем выполнение
-        // GraphQL resolver сам проверит аутентификацию через guard
+        // Token is invalid, but continue execution
+        // GraphQL resolver will check authentication through guard
       }
     }
 

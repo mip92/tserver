@@ -32,14 +32,14 @@ export class BoxTypeResolver {
 
   @Mutation(() => BoxType)
   @UseGuards(GraphQLAuthGuard, RolesGuard)
-  @Roles([RoleType.ADMIN]) // Только для админов
+  @Roles([RoleType.ADMIN]) // Admin only
   async createBoxType(@Args("input") input: BoxTypeInput): Promise<BoxType> {
     return this.boxTypeService.createBoxType(input);
   }
 
   @Mutation(() => BoxType)
   @UseGuards(GraphQLAuthGuard, RolesGuard)
-  @Roles([RoleType.ADMIN]) // Только для админов
+  @Roles([RoleType.ADMIN]) // Admin only
   async updateBoxType(
     @Args("id", { type: () => Int }) id: number,
     @Args("input") input: BoxTypeUpdateInput
@@ -49,7 +49,7 @@ export class BoxTypeResolver {
 
   @Mutation(() => BoxType)
   @UseGuards(GraphQLAuthGuard, RolesGuard)
-  @Roles([RoleType.ADMIN]) // Только для админов
+  @Roles([RoleType.ADMIN]) // Admin only
   async deleteBoxType(
     @Args("id", { type: () => Int }) id: number
   ): Promise<BoxType> {

@@ -24,6 +24,7 @@ export class AuthController {
 
   @Post("refresh")
   async refresh(@Token() token: string) {
+    console.log("refresh", token);
     if (!token) {
       throw new Error("Invalid authorization header");
     }

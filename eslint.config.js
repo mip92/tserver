@@ -24,6 +24,12 @@ export default [
       "@typescript-eslint/explicit-function-return-type": "off",
       "@typescript-eslint/explicit-module-boundary-types": "off",
       "@typescript-eslint/no-explicit-any": "off",
+      // Code style rules
+      "no-console": "warn", // Warn about console.log usage
+      "prefer-const": "error",
+      "no-var": "error",
+      // Comment rules - encourage English comments
+      "spaced-comment": ["error", "always", { "exceptions": ["-", "+"] }],
     },
   },
   {

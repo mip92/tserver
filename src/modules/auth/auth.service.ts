@@ -70,17 +70,30 @@ export class AuthService {
     };
 
     const newAccessToken = this.jwtService.sign(payload);
-    const newRefreshToken = await this.createRefreshToken(refreshToken.user.id);
 
-    // Отзываем старый refresh token
-    await this.prisma.refreshToken.update({
-      where: { id: refreshToken.id },
-      data: { isRevoked: true },
+    // Use transaction for atomicity of operations
+    const result = await this.prisma.$transaction(async (tx) => {
+      // First, revoke the old token
+      await tx.refreshToken.update({
+        where: { id: refreshToken.id },
+        data: { isRevoked: true },
+      });
+
+      // Then create a new token
+      const newRefreshToken = await this.createRefreshToken(
+        refreshToken.user.id,
+        tx
+      );
+
+      return newRefreshToken;
     });
+
+    console.log("newAccessToken", newAccessToken);
+    console.log("newRefreshToken", result);
 
     return {
       access_token: newAccessToken,
-      refresh_token: newRefreshToken,
+      refresh_token: result,
     };
   }
 
@@ -92,13 +105,13 @@ export class AuthService {
     return { message: "Successfully logged out" };
   }
 
-  private async createRefreshToken(userId: number): Promise<string> {
+  private async createRefreshToken(userId: number, tx?: any): Promise<string> {
     const token = uuidv4();
     const expiresAt = new Date();
     const refreshTokenExpiresIn =
       this.configService.get<string>("JWT_REFRESH_TOKEN_EXPIRES_IN") || "7d";
 
-    // Парсим строку времени (например, '7d' -> 7 дней)
+    // Parse time string (e.g., '7d' -> 7 days)
     if (refreshTokenExpiresIn.endsWith("d")) {
       const days = parseInt(refreshTokenExpiresIn.slice(0, -1));
       expiresAt.setDate(expiresAt.getDate() + days);
@@ -106,11 +119,12 @@ export class AuthService {
       const hours = parseInt(refreshTokenExpiresIn.slice(0, -1));
       expiresAt.setHours(expiresAt.getHours() + hours);
     } else {
-      // По умолчанию 7 дней
+      // Default to 7 days
       expiresAt.setDate(expiresAt.getDate() + 7);
     }
 
-    await this.prisma.refreshToken.create({
+    const prismaClient = tx || this.prisma;
+    await prismaClient.refreshToken.create({
       data: {
         token,
         userId,

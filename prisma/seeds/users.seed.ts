@@ -12,7 +12,7 @@ export async function seedUsers(
       id: USER_IDS.ADMIN,
       firstName: "Admin",
       lastName: "User",
-      email: "admin@example.com",
+      email: "19mip92@gmail.com",
       phone: "+1234567890",
       isActive: true,
       password: await bcrypt.hash("admin123", 10),

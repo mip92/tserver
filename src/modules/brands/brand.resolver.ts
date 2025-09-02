@@ -28,14 +28,14 @@ export class BrandResolver {
 
   @Mutation(() => Brand)
   @UseGuards(GraphQLAuthGuard, RolesGuard)
-  @Roles([RoleType.ADMIN]) // Только для админов
+  @Roles([RoleType.ADMIN]) // Admin only
   async createBrand(@Args("input") input: BrandInput): Promise<Brand> {
     return this.brandService.createBrand(input);
   }
 
   @Mutation(() => Brand)
   @UseGuards(GraphQLAuthGuard, RolesGuard)
-  @Roles([RoleType.ADMIN]) // Только для админов
+  @Roles([RoleType.ADMIN]) // Admin only
   async updateBrand(
     @Args("id", { type: () => Int }) id: number,
     @Args("input") input: BrandUpdateInput
@@ -45,7 +45,7 @@ export class BrandResolver {
 
   @Mutation(() => Brand)
   @UseGuards(GraphQLAuthGuard, RolesGuard)
-  @Roles([RoleType.ADMIN]) // Только для админов
+  @Roles([RoleType.ADMIN]) // Admin only
   async deleteBrand(
     @Args("id", { type: () => Int }) id: number
   ): Promise<Brand> {
