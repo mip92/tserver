@@ -29,7 +29,7 @@ export default [
       "prefer-const": "error",
       "no-var": "error",
       // Comment rules - encourage English comments
-      "spaced-comment": ["error", "always", { "exceptions": ["-", "+"] }],
+      "spaced-comment": ["error", "always", { exceptions: ["-", "+"] }],
     },
   },
   {

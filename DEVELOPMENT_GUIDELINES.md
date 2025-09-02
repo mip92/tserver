@@ -3,12 +3,14 @@
 ## Code Style and Language Rules
 
 ### Comments and Documentation
+
 - **ALWAYS use English for all comments and documentation**
 - **MINIMIZE comments usage** - prefer self-documenting code
 - Only add comments when the code logic is not obvious
 - Use JSDoc for complex functions and public APIs
 
 ### Code Quality Standards
+
 - Write clean, self-explanatory code
 - Use meaningful variable and function names
 - Follow TypeScript best practices
@@ -16,6 +18,7 @@
 - Implement proper logging instead of console.log in production
 
 ### Authentication & Security
+
 - Use token revocation (`isRevoked: true`) instead of deletion for security audit
 - Implement proper token rotation with atomic operations
 - Use transactions for multi-step database operations
@@ -24,6 +27,7 @@
 ## Available Scripts
 
 ### Code Quality Checks
+
 ```bash
 # Check for Russian comments in source files
 npm run check-comments
@@ -36,6 +40,7 @@ npm run pre-commit
 ```
 
 ### Development
+
 ```bash
 # Start development server
 npm run start:dev
@@ -50,11 +55,13 @@ npm run seed
 ## Pre-commit Workflow
 
 Before committing code, run:
+
 ```bash
 npm run pre-commit
 ```
 
 This will:
+
 1. Check for Russian comments in source files
 2. Run ESLint with auto-fix
 3. Ensure code quality standards are met
