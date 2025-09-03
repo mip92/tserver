@@ -13,6 +13,7 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/src/main",
     "seed": "ts-node prisma/seed.ts",
+    "cli": "ts-node src/cli.ts",
     "lint": "eslint '{src,apps,libs,test}/**/*.ts' --fix",
     "check-comments": "node scripts/check-russian-comments.js",
     "pre-commit": "npm run check-comments && npm run lint"
@@ -42,6 +43,7 @@
     "graphql": "^16.11.0",
     "graphql-upload": "^17.0.0",
     "multer": "^2.0.2",
+    "nest-commander": "^3.19.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",

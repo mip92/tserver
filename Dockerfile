@@ -1,25 +1,25 @@
-# Простой Dockerfile для NestJS
+# Development Dockerfile with volume support
 FROM node:22-alpine
 
-# Устанавливаем зависимости
+# Install system dependencies
 RUN apk add --update --no-cache openssl
 
 WORKDIR /app
 
-# Копируем package.json
+# Copy package files
 COPY package*.json ./
 
-# Устанавливаем ВСЕ зависимости (включая devDependencies)
+# Install all dependencies (including devDependencies)
 RUN npm ci --production=false --no-audit --no-fund --prefer-offline --no-optional
 
-# Копируем исходный код
+# Copy source code
 COPY . .
 
-# Генерируем Prisma клиент
+# Generate Prisma client
 RUN npx prisma generate
 
-EXPOSE 3000
+EXPOSE 4000
 
-# Команда запуска будет переопределена в docker-compose
+# Start command will be overridden in docker-compose
 CMD ["npm", "run", "start:dev"]
 

@@ -44,7 +44,6 @@ export class FileStorageService {
         Key: key,
         Body: file.buffer,
         ContentType: file.mimetype,
-        ACL: "public-read",
       });
 
       await this.s3Config.s3Client.send(command);
@@ -97,13 +96,14 @@ export class FileStorageService {
       "image/png",
       "image/webp",
       "image/gif",
+      "image/svg+xml",
     ];
 
     const maxSize = 10 * 1024 * 1024; // 10MB
 
     if (!allowedMimeTypes.includes(file.mimetype)) {
       throw new BadRequestException(
-        "Invalid file type. Only JPEG, PNG, WebP, and GIF images are allowed."
+        "Invalid file type. Only JPEG, PNG, WebP, GIF, and SVG images are allowed."
       );
     }
 

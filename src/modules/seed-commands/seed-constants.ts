@@ -1,11 +1,5 @@
 import { PrismaClient } from "@prisma/client";
 
-// Type for the transactional Prisma client
-export type PrismaTransactionClient = Omit<
-  PrismaClient,
-  "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
->;
-
 // Constants for ID roles
 export const ROLE_IDS = {
   ADMIN: 1,
@@ -168,3 +162,29 @@ export const INVENTORY_ITEM_IDS = {
   M1_9_CARTRIDGES_1: 23,
   BOX_1: 24,
 } as const;
+
+// File IDs that will be created
+export const FILE_IDS = {
+  RL_3_MAIN: 1,
+  RL_3_GALLERY_1: 2,
+  RL_3_GALLERY_2: 3,
+  RL_3_THUMBNAIL: 4,
+  RL_5_MAIN: 5,
+  RL_5_GALLERY_1: 6,
+  RL_5_GALLERY_2: 7,
+  RL_5_THUMBNAIL: 8,
+  BLACK_PAINT_MAIN: 9,
+  BLACK_PAINT_GALLERY_1: 10,
+  BLACK_PAINT_GALLERY_2: 11,
+  BLACK_PAINT_THUMBNAIL: 12,
+  TRANSFER_GEL_MAIN: 13,
+  TRANSFER_GEL_GALLERY_1: 14,
+  TRANSFER_GEL_GALLERY_2: 15,
+  TRANSFER_GEL_THUMBNAIL: 16,
+} as const;
+
+// Type for the transactional Prisma client
+export type PrismaTransactionClient = Omit<
+  PrismaClient,
+  "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
+>;

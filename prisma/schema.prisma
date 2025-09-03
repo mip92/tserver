@@ -20,6 +20,14 @@ enum ProductType {
   GEL
 }
 
+enum FileType {
+  MAIN
+  GALLERY
+  THUMBNAIL
+}
+
+
+
 model User {
   id            Int            @id @default(autoincrement())
   firstName     String
@@ -74,8 +82,6 @@ model Box {
   inventoryItems  InventoryItem[]  // Переименовываем связь
 
   @@map("boxes")
-  
-
 }
 
 model BoxType {
@@ -117,6 +123,7 @@ model Product {
   updatedAt      DateTime        @updatedAt
   inventoryItems InventoryItem[] // Переименовываем связь
   brand          Brand           @relation(fields: [brandId], references: [id])
+  files          File[]          // Связь с файлами
 
   @@map("products")
 }
@@ -129,4 +136,19 @@ model Brand {
   products  Product[]
 
   @@map("brands")
+}
+
+model File {
+  id        Int       @id @default(autoincrement())
+  filename  String    // Оригинальное имя файла
+  s3Key     String    @unique // Ключ в S3 (путь к файлу)
+  type      FileType  // Тип файла (MAIN, GALLERY, THUMBNAIL)
+  order     Int       @default(0) // Порядок сортировки
+  productId Int       // Связь с продуктом
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("files")
 }
