@@ -11,6 +11,7 @@ import { ProductModule } from "./modules/products/product.module";
 import { BrandModule } from "./modules/brands/brand.module";
 import { BoxTypeModule } from "./modules/box-types/box-type.module";
 import { HealthModule } from "./modules/health/health.module";
+import { FileStorageModule } from "./modules/file-storage/file-storage.module";
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { HealthModule } from "./modules/health/health.module";
     BrandModule,
     BoxTypeModule,
     HealthModule,
+    FileStorageModule,
   ],
 })
 export class AppModule {}
