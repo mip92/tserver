@@ -7,6 +7,7 @@ import {
 } from "@nestjs/graphql";
 import { ProductType } from "@prisma/client";
 import { Brand } from "../shared/brand.types";
+import { File } from "../shared/file.types";
 
 @ObjectType()
 export class Product {
@@ -33,6 +34,18 @@ export class Product {
 export class ProductWithBrand extends Product {
   @Field(() => Brand)
   brand: Brand;
+
+  @Field(() => [File], { nullable: true })
+  files?: File[];
+}
+
+@ObjectType()
+export class ProductGetAll extends Product {
+  @Field(() => Brand)
+  brand: Brand;
+
+  @Field(() => File, { nullable: true })
+  mainFile?: File;
 }
 
 @InputType()

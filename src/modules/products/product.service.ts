@@ -4,20 +4,30 @@ import {
   ProductWithBrand,
   ProductInput,
   ProductUpdateInput,
+  ProductGetAll,
 } from "./product.model";
 import { ProductsQueryDto } from "./dto/products-query.dto";
 import { PaginatedResponse } from "../shared/pagination.types";
 import { Prisma, ProductType } from "@prisma/client";
+import { FileStorageService } from "../file-storage/file-storage.service";
 
 @Injectable()
 export class ProductService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly fileStorageService: FileStorageService
+  ) {}
 
-  async findAll(): Promise<ProductWithBrand[]> {
-    const products = await this.prisma.product.findMany({
-      include: { brand: true },
-    });
-    return products as ProductWithBrand[];
+  private async addUrlToFiles(files: any[]): Promise<any[]> {
+    const filesWithUrls = [];
+    for (const file of files) {
+      const fileWithUrl = {
+        ...file,
+        url: await this.fileStorageService.getSignedUrl(file.s3Key, 3600),
+      };
+      filesWithUrls.push(fileWithUrl);
+    }
+    return filesWithUrls;
   }
 
   async findWithPagination({
@@ -29,7 +39,7 @@ export class ProductService {
     brandId,
     type,
     ids,
-  }: ProductsQueryDto): Promise<PaginatedResponse<ProductWithBrand>> {
+  }: ProductsQueryDto): Promise<PaginatedResponse<ProductGetAll>> {
     const where: Prisma.ProductWhereInput = {};
 
     if (brandId) {
@@ -70,7 +80,14 @@ export class ProductService {
     const [rows, total] = await Promise.all([
       this.prisma.product.findMany({
         where,
-        include: { brand: true },
+        include: {
+          brand: true,
+          files: {
+            where: { type: "MAIN" },
+            orderBy: { order: "asc" },
+            take: 1,
+          },
+        },
         orderBy,
         skip,
         take,
@@ -78,8 +95,25 @@ export class ProductService {
       this.prisma.product.count({ where }),
     ]);
 
+    const rowsWithUrls = [];
+    for (const product of rows) {
+      const productWithUrl = {
+        ...product,
+        mainFile: product.files?.[0]
+          ? {
+              ...product.files[0],
+              url: await this.fileStorageService.getSignedUrl(
+                product.files[0].s3Key,
+                3600
+              ),
+            }
+          : null,
+      };
+      rowsWithUrls.push(productWithUrl);
+    }
+
     return {
-      rows,
+      rows: rowsWithUrls,
       total,
     };
   }
@@ -87,30 +121,27 @@ export class ProductService {
   async findById(id: number): Promise<ProductWithBrand> {
     const product = await this.prisma.product.findUnique({
       where: { id },
-      include: { brand: true },
+      include: {
+        brand: true,
+        files: {
+          orderBy: [
+            { type: "asc" }, // MAIN comes before GALLERY alphabetically
+            { order: "asc" },
+          ],
+        },
+      },
     });
 
     if (!product) {
       throw new NotFoundException(`Product with ID ${id} not found`);
     }
 
-    return product as ProductWithBrand;
-  }
+    const filesWithUrls = await this.addUrlToFiles(product.files || []);
 
-  async findByBrandId(brandId: number): Promise<ProductWithBrand[]> {
-    const products = await this.prisma.product.findMany({
-      where: { brandId },
-      include: { brand: true },
-    });
-    return products as ProductWithBrand[];
-  }
-
-  async findByType(type: ProductType): Promise<ProductWithBrand[]> {
-    const products = await this.prisma.product.findMany({
-      where: { type },
-      include: { brand: true },
-    });
-    return products as ProductWithBrand[];
+    return {
+      ...product,
+      files: filesWithUrls,
+    };
   }
 
   async createProduct(productData: ProductInput): Promise<ProductWithBrand> {

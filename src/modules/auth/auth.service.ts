@@ -88,9 +88,6 @@ export class AuthService {
       return newRefreshToken;
     });
 
-    console.log("newAccessToken", newAccessToken);
-    console.log("newRefreshToken", result);
-
     return {
       access_token: newAccessToken,
       refresh_token: result,

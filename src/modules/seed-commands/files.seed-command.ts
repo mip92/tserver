@@ -4,7 +4,7 @@ import {
   FileStorageService,
   FileEntityType,
 } from "../file-storage/file-storage.service";
-import { readFileSync } from "fs";
+import { readFileSync, statSync } from "fs";
 import { join } from "path";
 import {
   PrismaTransactionClient,
@@ -30,7 +30,6 @@ export class FilesSeedCommand extends CommandRunner {
     options?: Record<string, any>
   ): Promise<void> {
     console.warn(`🔄 Processing ${commandName}...`);
-    const createdItemsUniqIdentifiers = [];
 
     const transaction: PrismaTransactionClient =
       options?.transaction || this.prisma;
@@ -213,29 +212,54 @@ export class FilesSeedCommand extends CommandRunner {
 
     let createdCount = 0;
     let updatedCount = 0;
+    let skippedCount = 0;
     for (const fileData of filesToCreate) {
       try {
-        console.log(`📤 Uploading ${fileData.filename} to S3...`);
-
-        // Upload file to S3
-        const uploadResult = await this.uploadProductImage(
-          fileData.filename.replace(".svg", ""),
-          fileData.productId.toString(),
-          this.getSubfolderByType(fileData.type),
-          fileData.productType
-        );
-
-        console.log(`✅ S3 upload successful: ${uploadResult.key}`);
-
         // Check if file already exists in database
         const existingFile = await transaction.file.findUnique({
           where: { id: fileData.id },
         });
 
+        let s3Key: string;
+        let needsS3Upload = false;
+
+        if (!existingFile) {
+          // New file - need to upload to S3
+          needsS3Upload = true;
+          console.log(`📤 Uploading new file ${fileData.filename} to S3...`);
+        } else {
+          // File exists - check if we need to re-upload
+          needsS3Upload = this.shouldReuploadFile(fileData, existingFile);
+          if (needsS3Upload) {
+            console.log(
+              `🔄 Re-uploading existing file ${fileData.filename} to S3 (file was modified)...`
+            );
+          } else {
+            console.log(
+              `⏭️ Skipping S3 upload for ${fileData.filename} (file unchanged)`
+            );
+            skippedCount++;
+          }
+        }
+
+        if (needsS3Upload) {
+          // Upload file to S3
+          const uploadResult = await this.uploadProductImage(
+            fileData.filename.replace(".svg", ""),
+            fileData.productId.toString(),
+            this.getSubfolderByType(fileData.type),
+            fileData.productType
+          );
+          s3Key = uploadResult.key;
+          console.log(`✅ S3 upload successful: ${uploadResult.key}`);
+        } else {
+          s3Key = existingFile!.s3Key;
+        }
+
         const fileRecord = {
           id: fileData.id,
           filename: fileData.filename,
-          s3Key: uploadResult.key,
+          s3Key: s3Key,
           type: fileData.type,
           order: fileData.order,
           productId: fileData.productId,
@@ -268,7 +292,9 @@ export class FilesSeedCommand extends CommandRunner {
       }
     }
 
-    console.log(`${createdCount} files created, ${updatedCount} files updated`);
+    console.log(
+      `${createdCount} files created, ${updatedCount} files updated, ${skippedCount} files skipped (unchanged)`
+    );
     console.warn(`✅ Done ${commandName}`);
   }
 
@@ -329,6 +355,31 @@ export class FilesSeedCommand extends CommandRunner {
         return "thumbnails";
       default:
         return "main";
+    }
+  }
+
+  private shouldReuploadFile(fileData: any, existingFile: any): boolean {
+    // Check if file was modified since last upload
+    try {
+      const filePath = join(
+        process.cwd(),
+        "public",
+        "images",
+        "products",
+        fileData.filename
+      );
+      const fileStats = statSync(filePath);
+      const fileModifiedAt = fileStats.mtime;
+      const dbUpdatedAt = existingFile.updatedAt;
+
+      // If file was modified after database record was updated, re-upload
+      return fileModifiedAt > dbUpdatedAt;
+    } catch (error) {
+      // If we can't check file stats, always re-upload to be safe
+      console.warn(
+        `⚠️ Could not check file stats for ${fileData.filename}, will re-upload`
+      );
+      return true;
     }
   }
 }

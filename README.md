@@ -1,3 +1,3 @@
 npx prisma generate
 npx prisma migrate dev
-npm run seed
+npm run cli all

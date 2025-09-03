@@ -1,6 +1,10 @@
 import { Injectable, BadRequestException } from "@nestjs/common";
 import { v4 as uuidv4 } from "uuid";
-import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import {
+  PutObjectCommand,
+  DeleteObjectCommand,
+  GetObjectCommand,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { S3ConfigService } from "./s3-config.service";
 
@@ -81,7 +85,7 @@ export class FileStorageService {
   }
 
   async getSignedUrl(key: string, expiresIn: number = 3600): Promise<string> {
-    const command = new PutObjectCommand({
+    const command = new GetObjectCommand({
       Bucket: this.s3Config.bucketName,
       Key: key,
     });

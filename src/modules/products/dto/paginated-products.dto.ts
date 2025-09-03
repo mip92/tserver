@@ -1,13 +1,13 @@
 import { Field, ObjectType, Int } from "@nestjs/graphql";
-import { ProductWithBrand } from "../product.model";
+import { ProductGetAll, ProductWithBrand } from "../product.model";
 import { PaginatedResponse } from "../../shared";
 
 @ObjectType()
 export class PaginatedProductsResponse
-  implements PaginatedResponse<ProductWithBrand>
+  implements PaginatedResponse<ProductGetAll>
 {
-  @Field(() => [ProductWithBrand])
-  rows: ProductWithBrand[];
+  @Field(() => [ProductGetAll])
+  rows: ProductGetAll[];
 
   @Field(() => Int)
   total: number;
