@@ -10,11 +10,13 @@ import { RolesGuard } from "./guards/admin-role.guard";
 import { RefreshTokenGuard } from "./guards/refresh-token.guard";
 import { PrismaModule } from "../../prisma/prisma.module";
 import { UserModule } from "../users/user.module";
+import { MailModule } from "../mail/mail.module";
 
 @Module({
   imports: [
     PrismaModule,
     UserModule,
+    MailModule,
     PassportModule,
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => {
