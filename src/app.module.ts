@@ -12,6 +12,7 @@ import { BrandModule } from "./modules/brands/brand.module";
 import { BoxTypeModule } from "./modules/box-types/box-type.module";
 import { HealthModule } from "./modules/health/health.module";
 import { FileStorageModule } from "./modules/file-storage/file-storage.module";
+import { MailModule } from "./modules/mail/mail.module";
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { FileStorageModule } from "./modules/file-storage/file-storage.module";
       introspection: true,
       context: ({ req }) => ({ req }),
     }),
+    MailModule,
     PrismaModule,
     UserModule,
     RoleModule,

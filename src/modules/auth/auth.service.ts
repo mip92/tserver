@@ -7,6 +7,7 @@ import {
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../../prisma/prisma.service";
+import { MailService } from "../mail/mail.service";
 import * as bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 import { TokenType } from "./types/token.types";
@@ -16,7 +17,8 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    private readonly mailService: MailService
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
@@ -202,39 +204,45 @@ export class AuthService {
   }
 
   async forgotPassword(email: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-    });
+    return await this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.findUnique({
+        where: { email },
+      });
 
-    if (!user) {
-      // Don't reveal if user exists or not for security
+      if (!user) {
+        // Don't reveal if user exists or not for security
+        return {
+          message: "If the email exists, a password reset link has been sent",
+        };
+      }
+
+      // Generate reset token
+      const resetToken = uuidv4();
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 1); // Token expires in 1 hour
+
+      // Save reset token
+      await tx.token.create({
+        data: {
+          token: resetToken,
+          userId: user.id,
+          type: TokenType.PASSWORD_RESET_TOKEN,
+          expiresAt,
+        },
+      });
+
+      // Send email with reset link
+      try {
+        await this.mailService.sendPasswordRecoveryToken(email, resetToken);
+      } catch (error) {
+        console.error("Failed to send password reset email:", error);
+        // Don't throw error - continue execution to maintain security
+      }
+
       return {
         message: "If the email exists, a password reset link has been sent",
       };
-    }
-
-    // Generate reset token
-    const resetToken = uuidv4();
-    const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + 1); // Token expires in 1 hour
-
-    // Save reset token
-    await this.prisma.token.create({
-      data: {
-        token: resetToken,
-        userId: user.id,
-        type: TokenType.PASSWORD_RESET_TOKEN,
-        expiresAt,
-      },
     });
-
-    // TODO: Send email with reset link
-    // For now, we'll just return the token (in production, send via email)
-    console.log(`Password reset token for ${email}: ${resetToken}`);
-
-    return {
-      message: "If the email exists, a password reset link has been sent",
-    };
   }
 
   async resetPassword(token: string, newPassword: string) {

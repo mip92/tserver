@@ -1,12 +1,16 @@
 import { Field, InputType, ObjectType } from "@nestjs/graphql";
+import { IsEmail, IsNotEmpty } from "class-validator";
 import { RoleBasic } from "../shared/types";
 
 @InputType()
 export class LoginInput {
   @Field()
+  @IsEmail({}, { message: "Please provide a valid email address" })
+  @IsNotEmpty({ message: "Email is required" })
   email: string;
 
   @Field()
+  @IsNotEmpty({ message: "Password is required" })
   password: string;
 }
 
@@ -58,15 +62,20 @@ export class RefreshResponse {
 @InputType()
 export class RegisterInput {
   @Field()
+  @IsNotEmpty({ message: "First name is required" })
   firstName: string;
 
   @Field()
+  @IsNotEmpty({ message: "Last name is required" })
   lastName: string;
 
   @Field()
+  @IsEmail({}, { message: "Please provide a valid email address" })
+  @IsNotEmpty({ message: "Email is required" })
   email: string;
 
   @Field()
+  @IsNotEmpty({ message: "Password is required" })
   password: string;
 
   @Field({ nullable: true })
@@ -76,15 +85,19 @@ export class RegisterInput {
 @InputType()
 export class ForgotPasswordInput {
   @Field()
+  @IsEmail({}, { message: "Please provide a valid email address" })
+  @IsNotEmpty({ message: "Email is required" })
   email: string;
 }
 
 @InputType()
 export class ResetPasswordInput {
   @Field()
+  @IsNotEmpty({ message: "Token is required" })
   token: string;
 
   @Field()
+  @IsNotEmpty({ message: "New password is required" })
   newPassword: string;
 }
 

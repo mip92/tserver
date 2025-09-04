@@ -10,11 +10,13 @@ import { LocalStrategy } from "./strategies/local.strategy";
 import { RolesGuard } from "./guards/admin-role.guard";
 import { PrismaModule } from "../../prisma/prisma.module";
 import { UserModule } from "../users/user.module";
+import { MailModule } from "../mail/mail.module";
 
 @Module({
   imports: [
     PrismaModule,
     UserModule,
+    MailModule,
     PassportModule,
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
