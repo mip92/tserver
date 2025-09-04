@@ -13,6 +13,12 @@ enum RoleType {
   USER
 }
 
+enum TokenType {
+  REFRESH_TOKEN
+  PASSWORD_RESET_TOKEN
+  EMAIL_VERIFICATION_TOKEN
+}
+
 enum ProductType {
   CARTRIDGE
   PAINT
@@ -29,18 +35,18 @@ enum FileType {
 
 
 model User {
-  id            Int            @id @default(autoincrement())
-  firstName     String
-  lastName      String
-  email         String         @unique
-  phone         String?
-  isActive      Boolean        @default(true)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  password      String
-  roleId        Int?
-  refreshTokens RefreshToken[]
-  role          Role?          @relation(fields: [roleId], references: [id])
+  id        Int      @id @default(autoincrement())
+  firstName String
+  lastName  String
+  email     String   @unique
+  phone     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  password  String
+  roleId    Int?
+  tokens    Token[]
+  role      Role?    @relation(fields: [roleId], references: [id])
 
   @@map("users")
 }
@@ -56,16 +62,20 @@ model Role {
   @@map("roles")
 }
 
-model RefreshToken {
-  id        Int      @id @default(autoincrement())
-  token     String   @unique
+model Token {
+  id        Int       @id @default(autoincrement())
+  token     String    @unique
   userId    Int
+  type      TokenType
   expiresAt DateTime
-  isRevoked Boolean  @default(false)
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isRevoked Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("refresh_tokens")
+  @@index([userId, type])
+  @@index([token, type])
+  @@index([expiresAt, isRevoked])
+  @@map("tokens")
 }
 
 model Box {

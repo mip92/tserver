@@ -2,7 +2,15 @@ import { Args, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { UseGuards } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { GraphQLAuthGuard } from "./guards/graphql-auth.guard";
-import { LoginInput, RefreshTokenInput, AuthResponse } from "./auth.model";
+import {
+  LoginInput,
+  RefreshTokenInput,
+  AuthResponse,
+  RegisterInput,
+  ForgotPasswordInput,
+  ResetPasswordInput,
+  MessageResponse,
+} from "./auth.model";
 
 @Resolver()
 export class AuthResolver {
@@ -38,5 +46,20 @@ export class AuthResolver {
   @Query(() => String)
   getProfile() {
     return "Profile data";
+  }
+
+  @Mutation(() => AuthResponse)
+  async register(@Args("input") input: RegisterInput) {
+    return this.authService.register(input);
+  }
+
+  @Mutation(() => MessageResponse)
+  async forgotPassword(@Args("input") input: ForgotPasswordInput) {
+    return this.authService.forgotPassword(input.email);
+  }
+
+  @Mutation(() => MessageResponse)
+  async resetPassword(@Args("input") input: ResetPasswordInput) {
+    return this.authService.resetPassword(input.token, input.newPassword);
   }
 }

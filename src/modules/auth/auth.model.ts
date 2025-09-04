@@ -54,3 +54,42 @@ export class RefreshResponse {
   @Field()
   refresh_token: string;
 }
+
+@InputType()
+export class RegisterInput {
+  @Field()
+  firstName: string;
+
+  @Field()
+  lastName: string;
+
+  @Field()
+  email: string;
+
+  @Field()
+  password: string;
+
+  @Field({ nullable: true })
+  phone?: string;
+}
+
+@InputType()
+export class ForgotPasswordInput {
+  @Field()
+  email: string;
+}
+
+@InputType()
+export class ResetPasswordInput {
+  @Field()
+  token: string;
+
+  @Field()
+  newPassword: string;
+}
+
+@ObjectType()
+export class MessageResponse {
+  @Field()
+  message: string;
+}
