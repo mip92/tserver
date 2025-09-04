@@ -3,40 +3,45 @@ import { JwtModule } from "@nestjs/jwt";
 import { PassportModule } from "@nestjs/passport";
 import { ConfigService } from "@nestjs/config";
 import { AuthService } from "./auth.service";
-import { AuthController } from "./auth.controller";
 import { AuthResolver } from "./auth.resolver";
 import { JwtStrategy } from "./strategies/jwt.strategy";
 import { LocalStrategy } from "./strategies/local.strategy";
 import { RolesGuard } from "./guards/admin-role.guard";
+import { RefreshTokenGuard } from "./guards/refresh-token.guard";
 import { PrismaModule } from "../../prisma/prisma.module";
 import { UserModule } from "../users/user.module";
-import { MailModule } from "../mail/mail.module";
 
 @Module({
   imports: [
     PrismaModule,
     UserModule,
-    MailModule,
     PassportModule,
     JwtModule.registerAsync({
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.getOrThrow<string>("JWT_SECRET"),
-        signOptions: {
-          expiresIn: configService.getOrThrow<string>(
-            "JWT_ACCESS_TOKEN_EXPIRES_IN"
-          ),
-        },
-      }),
+      useFactory: (configService: ConfigService) => {
+        // Use JWT secret
+        const secret = configService.getOrThrow<string>("JWT_SECRET");
+
+        return {
+          secret: secret,
+          signOptions: {
+            expiresIn: configService.getOrThrow<string>(
+              "JWT_ACCESS_TOKEN_EXPIRES_IN"
+            ),
+            algorithm: "HS256",
+          },
+        };
+      },
       inject: [ConfigService],
     }),
   ],
-  controllers: [AuthController],
+  controllers: [],
   providers: [
     AuthService,
     AuthResolver,
     JwtStrategy,
     LocalStrategy,
     RolesGuard,
+    RefreshTokenGuard,
   ],
   exports: [AuthService, RolesGuard],
 })

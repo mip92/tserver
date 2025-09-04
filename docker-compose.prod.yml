@@ -18,6 +18,13 @@ services:
       S3_BUCKET_NAME: ${S3_BUCKET_NAME}
       S3_ENDPOINT: ${S3_ENDPOINT}
       S3_PUBLIC_DOMAIN: ${S3_PUBLIC_DOMAIN}
+      # CORS Configuration
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      # Mail Configuration
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_LOGIN: ${MAIL_LOGIN}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
     ports:
       - "3000:3000"
     networks:

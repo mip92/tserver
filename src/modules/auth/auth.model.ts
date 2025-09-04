@@ -14,12 +14,6 @@ export class LoginInput {
   password: string;
 }
 
-@InputType()
-export class RefreshTokenInput {
-  @Field()
-  refreshToken: string;
-}
-
 @ObjectType()
 export class UserAuth {
   @Field()
@@ -92,10 +86,6 @@ export class ForgotPasswordInput {
 
 @InputType()
 export class ResetPasswordInput {
-  @Field()
-  @IsNotEmpty({ message: "Token is required" })
-  token: string;
-
   @Field()
   @IsNotEmpty({ message: "New password is required" })
   newPassword: string;

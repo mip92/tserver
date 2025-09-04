@@ -2,9 +2,16 @@ import { Args, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { UseGuards } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { GraphQLAuthGuard } from "./guards/graphql-auth.guard";
+import { ResetTokenGuard } from "./guards/reset-token.guard";
+import { RefreshTokenGuard } from "./guards/refresh-token.guard";
+import { ResetToken, ResetTokenData } from "./decorators/reset-token.decorator";
+import {
+  RefreshToken,
+  RefreshTokenData,
+} from "./decorators/refresh-token.decorator";
+import { LogoutToken } from "./decorators/logout-token.decorator";
 import {
   LoginInput,
-  RefreshTokenInput,
   AuthResponse,
   RegisterInput,
   ForgotPasswordInput,
@@ -30,14 +37,15 @@ export class AuthResolver {
     return this.authService.login(user);
   }
 
+  @UseGuards(RefreshTokenGuard)
   @Mutation(() => AuthResponse)
-  async refreshToken(@Args("input") input: RefreshTokenInput) {
-    return this.authService.refreshToken(input.refreshToken);
+  async refreshToken(@RefreshToken() refreshTokenData: RefreshTokenData) {
+    return this.authService.refreshToken(refreshTokenData);
   }
 
   @UseGuards(GraphQLAuthGuard)
   @Mutation(() => String)
-  async logout(@Args("refreshToken") refreshToken: string) {
+  async logout(@LogoutToken() refreshToken: string) {
     await this.authService.logout(refreshToken);
     return "Successfully logged out";
   }
@@ -58,8 +66,16 @@ export class AuthResolver {
     return this.authService.forgotPassword(input.email);
   }
 
-  @Mutation(() => MessageResponse)
-  async resetPassword(@Args("input") input: ResetPasswordInput) {
-    return this.authService.resetPassword(input.token, input.newPassword);
+  @UseGuards(ResetTokenGuard)
+  @Mutation(() => AuthResponse)
+  async resetPassword(
+    @Args("input") input: ResetPasswordInput,
+    @ResetToken() resetTokenData: ResetTokenData
+  ) {
+    return this.authService.resetPassword(
+      resetTokenData.token.token,
+      input.newPassword,
+      resetTokenData.user.id
+    );
   }
 }
