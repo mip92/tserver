@@ -8,55 +8,125 @@
 
 This document describes how to connect to production database and run migrations/seeds from local development machine using Docker.
 
+## 🤖 AI Assistant Requirements
+
+**For AI assistant to run migrations automatically, the following data is required:**
+
+### 1. **SSH Connection Details**
+
+- **Server IP address** (e.g., `your.server.ip.address`)
+- **SSH username** (e.g., `root`)
+- **SSH key path** (e.g., `/Users/username/.ssh/id_ed11111111`)
+
+### 2. **Database Credentials**
+
+- **Database username** (e.g., `your_db_user`)
+- **Database password** (e.g., `your_db_password`)
+- **Database name** (e.g., `your_db_name`)
+
+### 3. **Environment Configuration**
+
+- **PRODUCTION_DATABASE_URL** in `.env` file
+- **SSH tunnel must be active** on port 5432
+- **Use `localhost:5432`** for local commands (not in Docker)
+- **Use `host.docker.internal:5432`** for Docker containers
+
+**AI Assistant should request from user:**
+
+1. **Server IP and SSH credentials** for tunnel setup
+2. **Database credentials** for connection string
+3. **Confirmation** that SSH tunnel is active
+
+**Without these data, AI Assistant cannot:**
+
+- Start SSH tunnel
+- Connect to production database
+- Run migrations automatically
+
+## 📝 AI Assistant Checklist
+
+**Before running migrations, AI Assistant must:**
+
+1. **Request SSH connection details:**
+
+   ```
+   "Please provide:
+   - Server IP address
+   - SSH username
+   - SSH key path"
+   ```
+
+2. **Request database credentials:**
+
+   ```
+   "Please provide:
+   - Database username
+   - Database password
+   - Database name"
+   ```
+
+3. **Verify environment setup:**
+
+   ```
+   "Please confirm:
+   - PRODUCTION_DATABASE_URL is set in .env file
+   - SSH tunnel is active on port 5432"
+   ```
+
+4. **Test connection before proceeding:**
+   ```bash
+   lsof -i :5432  # Check SSH tunnel
+   docker-compose --profile migration up migration  # Run migrations
+   ```
+
+## 🚨 Common Problems & Solutions
+
+### Problem 1: Database Connection Issues
+
+**Error:** `Can't reach database server at localhost:5432`
+**Cause:** Docker container cannot access host's localhost directly
+**Solution:** Use `host.docker.internal:5432` instead of `localhost:5432`
+
+### Problem 2: SSH Tunnel Not Active
+
+**Error:** `Can't reach database server at host.docker.internal:5432`
+**Cause:** SSH tunnel is not running or has been disconnected
+**Solution:** Always start SSH tunnel before running migrations
+
+### Problem 3: Environment Variables Not Loaded
+
+**Error:** `PRODUCTION_DATABASE_URL resolved to an empty string`
+**Cause:** Variable not set in `.env` file or not loaded properly
+**Solution:** Add `PRODUCTION_DATABASE_URL` to `.env` file
+
+### Problem 4: Network Configuration Issues
+
+**Error:** Docker container cannot reach host services
+**Cause:** Wrong network configuration in docker-compose.yml
+**Solution:** Use `host.docker.internal` with proper network setup
+
+### Problem 5: Migration Already Applied
+
+**Error:** `The migration is already recorded as applied`
+**Cause:** Baseline migration was already applied to production database
+**Solution:** This is normal - proceed with new migrations using `migrate deploy`
+
 ## 🔧 Setup Process
 
-### 1. Database Connection Discovery
+### 1. Environment Variables Setup
 
-First, we needed to find the correct database credentials for production:
-
-```bash
-# Connect to production server
-ssh root@164.92.133.111
-
-# Check running containers
-docker ps
-
-# Get database URL from production backend container
-docker exec tattoo-backend-prod env | grep DATABASE_URL
-```
-
-**Result:** `DATABASE_URL=postgresql://username:password@postgres:5432/database_name`
-
-### 2. Environment Variables Setup
-
-First, add production database URL to your `.env` file:
+Add production database URL to your `.env` file:
 
 ```bash
 # Add to .env file
-PRODUCTION_DATABASE_URL="postgresql://username:password@164.92.133.111:5432/database_name"
+# For local commands (not in Docker):
+PRODUCTION_DATABASE_URL="postgresql://your_db_user:your_db_password@localhost:5432/your_db_name"
+
+# For Docker containers:
+# PRODUCTION_DATABASE_URL="postgresql://your_db_user:your_db_password@host.docker.internal:5432/your_db_name"
 ```
 
-**Complete .env example:**
-
-```bash
-# Local Development Database
-DATABASE_URL="postgresql://tattoo_dev:tattoo_dev@localhost:5433/tattoo_dev"
-
-# Production Database (for migrations)
-PRODUCTION_DATABASE_URL="postgresql://username:password@164.92.133.111:5432/database_name"
-
-# JWT Configuration
-JWT_SECRET=your_jwt_secret_here
-
-# Cloudflare R2 Configuration
-S3_ACCESS_KEY_ID=your_s3_access_key
-S3_SECRET_ACCESS_KEY=your_s3_secret_key
-S3_BUCKET_NAME=your_bucket_name
-S3_ENDPOINT=https://your-account-id.r2.cloudflarestorage.com
-S3_PUBLIC_DOMAIN=your-bucket.your-account-id.r2.cloudflarestorage.com
-```
-
-### 3. Docker Compose Migration Service
+### 2. Docker Compose Migration Service
 
 Created a dedicated migration service in `docker-compose.yml`:
 
@@ -138,29 +208,23 @@ docker-compose --profile migration up migration
 
 **Results:**
 
-- ✅ **Roles:** 2 updated
-- ✅ **Users:** 1 updated
-- ✅ **Brands:** 5 updated
-- ✅ **Box Types:** 10 updated
-- ✅ **Products:** 36 updated
-- ✅ **Boxes:** 14 updated, 4 deleted
-- ✅ **Inventory Items:** 3 updated
-- ✅ **Files:** 16 created, 0 updated, 0 skipped
+- ✅ **Roles:** Updated successfully
+- ✅ **Users:** Updated successfully
+- ✅ **Brands:** Updated successfully
+- ✅ **Box Types:** Updated successfully
+- ✅ **Products:** Updated successfully
+- ✅ **Boxes:** Updated successfully
+- ✅ **Inventory Items:** Updated successfully
+- ✅ **Files:** Processed successfully
 
 ### 6. S3 File Uploads
 
-All 16 product files were successfully uploaded to Cloudflare R2:
+All product files were successfully uploaded to S3 storage:
 
 ```
-📤 Uploading new file 3rl-main.svg to S3...
-✅ S3 upload successful: products/2/main/7b725fc6-a436-43e3-b4eb-5b0f1ab9dbbe.svg
-📝 Database record created: 3rl-main.svg
-
-📤 Uploading new file 5rl-main.svg to S3...
-✅ S3 upload successful: products/3/main/ac839b1d-eac6-4cd7-a284-2bb8b02ef63d.svg
-📝 Database record created: 5rl-main.svg
-
-... (14 more files)
+📤 Uploading files to S3...
+✅ S3 upload successful
+📝 Database records created/updated
 ```
 
 ## 🚀 Key Features
@@ -186,31 +250,87 @@ All 16 product files were successfully uploaded to Cloudflare R2:
 
 ### 4. **Production Database Connection**
 
-- Direct connection to production PostgreSQL: `164.92.133.111:5432`
+- Connection to production PostgreSQL through SSH tunnel
 - Uses production credentials from environment variables
 - Database connection string stored in `PRODUCTION_DATABASE_URL`
 
-## 📋 Commands Summary
+## 📋 Step-by-Step Migration & Seeding Process
+
+### Prerequisites
+
+1. **SSH access to production server**
+2. **SSH key** for authentication
+3. **Production database credentials**
+4. **Local `.env` file** with `PRODUCTION_DATABASE_URL`
+
+### Step 1: Start SSH Tunnel
 
 ```bash
-# 1. Baseline existing migrations
-docker-compose --profile migration up migration
-# (with command: npx prisma migrate resolve --applied 20250901181734_init)
+# Start SSH tunnel to production database
+ssh -L 5432:localhost:5432 -i /path/to/ssh/key user@production-server
 
-# 2. Apply new migrations
-docker-compose --profile migration up migration
-# (with command: npx prisma migrate deploy)
+# Keep this terminal open - tunnel must stay active!
+```
 
-# 3. Run all seeds
+### Step 2: Verify SSH Tunnel
+
+```bash
+# In another terminal, check if tunnel is active
+lsof -i :5432
+
+# Should show:
+# ssh  PID  user  5u  IPv6  TCP localhost:postgresql (LISTEN)
+# ssh  PID  user  6u  IPv4  TCP localhost:postgresql (LISTEN)
+```
+
+### Step 3: Configure Environment
+
+```bash
+# Add to .env file:
+# For local commands:
+PRODUCTION_DATABASE_URL=postgresql://your_db_user:your_db_password@localhost:5432/your_db_name
+
+# For Docker containers:
+# PRODUCTION_DATABASE_URL=postgresql://your_db_user:your_db_password@host.docker.internal:5432/your_db_name
+```
+
+### Step 4: Run Migrations
+
+```bash
+# Apply new migrations to production database
 docker-compose --profile migration up migration
-# (with command: npm run cli all)
+```
+
+### Step 5: Run Seeds
+
+```bash
+# Run all seed commands (roles, users, brands, products, etc.)
+docker-compose --profile migration up migration
+```
+
+### Step 6: Verify Results
+
+```bash
+# Check migration status
+docker exec tattoo-migration npx prisma migrate status
+
+# Check database connection
+docker exec tattoo-migration npx prisma db pull
+```
+
+## 🚀 Quick Commands
+
+```bash
+# Complete migration and seeding process
+ssh -L 5432:localhost:5432 -i /path/to/ssh/key user@production-server &
+docker-compose --profile migration up migration
 ```
 
 ## ✅ Final Result
 
-- **Database Schema:** Updated with new `File` table and relationships
+- **Database Schema:** Updated with new tables and relationships
 - **Data:** All production data preserved and updated
-- **Files:** 16 product images uploaded to Cloudflare R2
+- **Files:** Product images uploaded to S3 storage
 - **API:** Ready to serve product images with signed URLs
 - **Security:** Files are not publicly accessible, require signed URLs
 
@@ -223,6 +343,32 @@ docker-compose --profile migration up migration
 - All file access requires signed URLs with expiration
 - Use `.env.example` for documentation, `.env` for actual credentials
 
+## ⚠️ Important Notes
+
+### Critical Requirements
+
+1. **SSH tunnel MUST be active** during entire migration process
+2. **Never close SSH tunnel terminal** until migration is complete
+3. **Always verify tunnel** with `lsof -i :5432` before running migrations
+4. **Use `host.docker.internal`** not `localhost` in Docker containers
+5. **Test connection** before running migrations
+
+### Common Mistakes
+
+- ❌ Running migrations without SSH tunnel
+- ❌ Using `localhost` instead of `host.docker.internal`
+- ❌ Not setting `PRODUCTION_DATABASE_URL` in `.env`
+- ❌ Closing SSH tunnel during migration
+- ❌ Using wrong port (5433 instead of 5432)
+
+### Success Indicators
+
+- ✅ SSH tunnel shows active connections on port 5432
+- ✅ Migration container connects to database successfully
+- ✅ Migrations apply without errors
+- ✅ Seeds run and update data
+- ✅ All operations complete in single transaction
+
 ## 🛠️ Troubleshooting
 
 ### Connection Issues
@@ -233,13 +379,34 @@ docker exec tattoo-migration npx prisma db pull
 
 # Check environment variables
 docker exec tattoo-migration env | grep DATABASE_URL
+
+# Verify SSH tunnel is active
+lsof -i :5432
+
+# Test direct connection to production database
+psql -h localhost -p 5432 -U username -d database_name
 ```
 
-### S3 Issues
+### SSH Tunnel Issues
 
 ```bash
-# Test S3 connection
-docker exec tattoo-migration npx prisma db seed
+# Check if SSH tunnel is running
+ps aux | grep ssh
+
+# Restart SSH tunnel if needed
+pkill -f "ssh -L 5432"
+ssh -L 5432:localhost:5432 -i /path/to/ssh/key user@production-server
+```
+
+### Docker Issues
+
+```bash
+# Clean up Docker containers
+docker-compose down
+docker system prune -f
+
+# Rebuild migration container
+docker-compose build migration
 ```
 
 ### Migration Issues
@@ -248,6 +415,19 @@ docker exec tattoo-migration npx prisma db seed
 # Check migration status
 docker exec tattoo-migration npx prisma migrate status
 
+# Check what migrations are pending
+docker exec tattoo-migration npx prisma migrate diff
+
 # Reset if needed (DANGEROUS!)
 docker exec tattoo-migration npx prisma migrate reset
+```
+
+### Environment Issues
+
+```bash
+# Check if .env file is loaded
+docker exec tattoo-migration cat /app/.env
+
+# Verify PRODUCTION_DATABASE_URL format
+echo $PRODUCTION_DATABASE_URL
 ```

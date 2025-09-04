@@ -6,10 +6,10 @@
 
 ```bash
 cat > .env << EOF
-POSTGRES_USER=tattoo
-POSTGRES_PASSWORD=tattoo_prod_pass_secure
-POSTGRES_DB=tattoo_db
-DATABASE_URL=postgresql://tattoo:tattoo_prod_pass_secure@database:5432/tattoo_db
+POSTGRES_USER=your_db_user
+POSTGRES_PASSWORD=your_secure_db_password
+POSTGRES_DB=your_db_name
+DATABASE_URL=postgresql://your_db_user:your_secure_db_password@database:5432/your_db_name
 NODE_ENV=production
 PORT=3000
 JWT_SECRET=your-super-secret-jwt-key-change-in-production
