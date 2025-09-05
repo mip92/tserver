@@ -24,10 +24,12 @@ export const getMailerConfig = (
         user: configService.getOrThrow<string>("MAIL_LOGIN"),
         pass: configService.getOrThrow<string>("MAIL_PASSWORD"),
       },
-      tls: isPort2525 ? { 
-        rejectUnauthorized: false,
-        ciphers: 'SSLv3'
-      } : undefined,
+      tls: isPort2525
+        ? {
+            rejectUnauthorized: false,
+            ciphers: "SSLv3",
+          }
+        : undefined,
     },
     defaults: {
       from: configService.getOrThrow<string>("MAIL_LOGIN"),
