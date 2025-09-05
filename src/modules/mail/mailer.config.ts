@@ -10,12 +10,12 @@ export const getMailerConfig = (
     transport: {
       host: configService.getOrThrow<string>("MAIL_HOST"),
       port,
-      secure: port === 465,
+      secure: String(port) === "465",
       auth: {
         user: configService.getOrThrow<string>("MAIL_LOGIN"),
         pass: configService.getOrThrow<string>("MAIL_PASSWORD"),
       },
-      tls: port === 2525 ? { rejectUnauthorized: false } : undefined,
+      tls: String(port) === "2525" ? { rejectUnauthorized: false } : undefined,
     },
     defaults: {
       from: configService.getOrThrow<string>("MAIL_LOGIN"),
