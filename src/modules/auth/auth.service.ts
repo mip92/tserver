@@ -209,48 +209,51 @@ export class AuthService {
   }
 
   async forgotPassword(email: string) {
-    return await this.prisma.$transaction(async (tx) => {
-      const user = await tx.user.findUnique({
-        where: { email },
-      });
+    return await this.prisma.$transaction(
+      async (tx) => {
+        const user = await tx.user.findUnique({
+          where: { email },
+        });
 
-      if (!user) {
-        // Don't reveal if user exists or not for security
+        if (!user) {
+          // Don't reveal if user exists or not for security
+          return {
+            message: "If the email exists, a password reset link has been sent",
+          };
+        }
+
+        // Generate reset token
+        const resetToken = uuidv4();
+        const expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + 1); // Token expires in 1 hour
+
+        // Save reset token
+        await tx.token.create({
+          data: {
+            token: resetToken,
+            userId: user.id,
+            type: TokenType.PASSWORD_RESET_TOKEN,
+            expiresAt,
+          },
+        });
+
+        // Send email with reset link
+        try {
+          await this.mailService.sendPasswordRecoveryToken(email, resetToken);
+        } catch (error) {
+          console.error("Failed to send password reset email:", error);
+          // Don't throw error - continue execution to maintain security
+        }
+
         return {
           message: "If the email exists, a password reset link has been sent",
         };
+      },
+      {
+        maxWait: 60000, // 60 seconds
+        timeout: 60000, // 60 seconds
       }
-
-      // Generate reset token
-      const resetToken = uuidv4();
-      const expiresAt = new Date();
-      expiresAt.setHours(expiresAt.getHours() + 1); // Token expires in 1 hour
-
-      // Save reset token
-      await tx.token.create({
-        data: {
-          token: resetToken,
-          userId: user.id,
-          type: TokenType.PASSWORD_RESET_TOKEN,
-          expiresAt,
-        },
-      });
-
-      // Send email with reset link
-      try {
-        await this.mailService.sendPasswordRecoveryToken(email, resetToken);
-      } catch (error) {
-        console.error("Failed to send password reset email:", error);
-        // Don't throw error - continue execution to maintain security
-      }
-
-      return {
-        message: "If the email exists, a password reset link has been sent",
-      };
-    }, {
-      maxWait: 60000, // 60 seconds
-      timeout: 60000, // 60 seconds
-    });
+    );
   }
 
   async resetPassword(token: string, newPassword: string, userId: number) {
