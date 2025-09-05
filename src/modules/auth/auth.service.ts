@@ -209,7 +209,7 @@ export class AuthService {
   }
 
   async forgotPassword(email: string) {
-    return await this.prisma.longTransaction(async (tx) => {
+    return await this.prisma.$transaction(async (tx) => {
       const user = await tx.user.findUnique({
         where: { email },
       });
@@ -247,6 +247,9 @@ export class AuthService {
       return {
         message: "If the email exists, a password reset link has been sent",
       };
+    }, {
+      maxWait: 60000, // 60 seconds
+      timeout: 60000, // 60 seconds
     });
   }
 
