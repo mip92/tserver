@@ -209,7 +209,7 @@ export class AuthService {
   }
 
   async forgotPassword(email: string) {
-    return await this.prisma.$transaction(async (tx) => {
+    return await this.prisma.longTransaction(async (tx) => {
       const user = await tx.user.findUnique({
         where: { email },
       });
