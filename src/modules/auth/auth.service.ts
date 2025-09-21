@@ -8,10 +8,31 @@ import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../../prisma/prisma.service";
 import { MailService } from "../mail/mail.service";
+import { SmsService } from "../sms/sms.service";
 import * as bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
-import { TokenType } from "./types/token.types";
+import { TokenType, JwtPayload } from "./types/token.types";
+import {
+  UserForLogin,
+  UserVerificationUpdateData,
+  UserGoBackUpdateData,
+} from "./types/user.types";
 import { RefreshTokenData } from "./decorators/refresh-token.decorator";
+import {
+  StartRegistrationInput,
+  StartRegistrationResponse,
+  VerifyCodeInput,
+  VerifyCodeResponse,
+  SetPasswordInput,
+  SetPasswordResponse,
+  SetPersonalInfoInput,
+  SetPersonalInfoResponse,
+  ResendCodeInput,
+  ResendCodeResponse,
+  GoBackStepInput,
+  MessageResponse,
+} from "./auth.model";
+import { RoleType } from "@prisma/client";
 
 @Injectable()
 export class AuthService {
@@ -19,29 +40,46 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    private readonly mailService: MailService
+    private readonly mailService: MailService,
+    private readonly smsService: SmsService
   ) {}
 
-  async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.prisma.user.findUnique({
-      where: { email },
+  async validateUser(
+    email?: string,
+    phone?: string,
+    password?: string
+  ): Promise<any> {
+    // Validate that exactly one of email or phone is provided
+    const hasEmail = email && email.trim() !== "";
+    const hasPhone = phone && phone.trim() !== "";
+
+    if (!hasEmail && !hasPhone) {
+      throw new BadRequestException("Either email or phone must be provided");
+    }
+
+    if (hasEmail && hasPhone) {
+      throw new BadRequestException(
+        "Only one of email or phone should be provided"
+      );
+    }
+
+    // Try to find user by email or phone
+    const user = await this.prisma.user.findFirst({
+      where: {
+        OR: [{ email }, { phone }],
+      },
       include: { role: true },
     });
 
-    if (user && (await bcrypt.compare(password, user.password))) {
+    if (user && password && (await bcrypt.compare(password, user.password))) {
       const { password, ...result } = user;
       return result;
     }
     return null;
   }
 
-  async login(user: any) {
-    const payload = {
-      email: user.email,
-      sub: user.id,
-      role: user.role?.name,
-    };
-
+  async login(user: UserForLogin) {
+    const payload = this.createJwtPayload(user);
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = await this.createRefreshToken(user.id);
 
@@ -51,6 +89,7 @@ export class AuthService {
       user: {
         id: user.id,
         email: user.email,
+        phone: user.phone,
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
@@ -61,12 +100,7 @@ export class AuthService {
   async refreshToken(refreshTokenData: RefreshTokenData) {
     const { user, token: refreshToken } = refreshTokenData;
 
-    const payload = {
-      email: user.email,
-      sub: user.id,
-      role: user.role?.name,
-    };
-
+    const payload = this.createJwtPayload(user);
     const newAccessToken = this.jwtService.sign(payload);
 
     // Use transaction for atomicity of operations
@@ -89,6 +123,7 @@ export class AuthService {
       user: {
         id: user.id,
         email: user.email,
+        phone: user.phone,
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
@@ -157,99 +192,88 @@ export class AuthService {
     return bcrypt.hash(password, saltRounds);
   }
 
-  async register(userData: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    password: string;
-    phone?: string;
-  }) {
-    // Check if user already exists
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email: userData.email },
-    });
-
-    if (existingUser) {
-      throw new ConflictException("User with this email already exists");
-    }
-
-    // Hash password
-    const hashedPassword = await this.hashPassword(userData.password);
-
-    // Create user
-    const user = await this.prisma.user.create({
-      data: {
-        ...userData,
-        password: hashedPassword,
-      },
-      include: { role: true },
-    });
-
-    // Generate tokens
-    const payload = {
-      email: user.email,
-      sub: user.id,
-      role: user.role?.name,
-    };
-
-    const accessToken = this.jwtService.sign(payload);
-    const refreshToken = await this.createRefreshToken(user.id);
-
-    return {
-      access_token: accessToken,
-      refresh_token: refreshToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-      },
-    };
+  async comparePasswords(
+    plainPassword: string,
+    hashedPassword: string
+  ): Promise<boolean> {
+    return bcrypt.compare(plainPassword, hashedPassword);
   }
 
-  async forgotPassword(email: string) {
-    // Generate reset token
-    const resetToken = uuidv4();
-    const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + 1); // Token expires in 1 hour
+  async forgotPassword(data: { email?: string; phone?: string }) {
+    const { email, phone } = data;
+
+    // Validate that exactly one of email or phone is provided
+    const hasEmail = email && email.trim() !== "";
+    const hasPhone = phone && phone.trim() !== "";
+
+    if (!hasEmail && !hasPhone) {
+      throw new BadRequestException("Either email or phone must be provided");
+    }
+
+    if (hasEmail && hasPhone) {
+      throw new BadRequestException(
+        "Only one of email or phone should be provided"
+      );
+    }
 
     // All database operations in transaction
     const result = await this.prisma.$transaction(async (tx) => {
-      const user = await tx.user.findUnique({
-        where: { email },
-      });
+      let user;
+
+      if (email) {
+        user = await tx.user.findUnique({
+          where: { email },
+        });
+      } else if (phone) {
+        user = await tx.user.findFirst({
+          where: { phone },
+        });
+      }
 
       if (!user) {
         // Don't reveal if user exists or not for security
         return {
-          message: "If the email exists, a password reset link has been sent",
-          shouldSendEmail: false,
+          message: "If the account exists, a password reset code has been sent",
+          shouldSendCode: false,
+          method: email ? "email" : "sms",
         };
       }
+
+      // Generate 4-digit code for SMS or UUID for email
+      const resetCode = email ? uuidv4() : this.generateVerificationCode();
+      const expiresAt = new Date();
+      expiresAt.setMinutes(expiresAt.getMinutes() + 15); // Code expires in 15 minutes
 
       // Save reset token
       await tx.token.create({
         data: {
-          token: resetToken,
+          token: resetCode,
           userId: user.id,
-          type: TokenType.PASSWORD_RESET_TOKEN,
+          type: email
+            ? TokenType.PASSWORD_RESET_TOKEN
+            : TokenType.SMS_PASSWORD_RESET_TOKEN,
           expiresAt,
         },
       });
 
       return {
-        message: "If the email exists, a password reset link has been sent",
-        shouldSendEmail: true,
+        message: "If the account exists, a password reset code has been sent",
+        shouldSendCode: true,
+        method: email ? "email" : "sms",
+        code: resetCode, // For testing purposes
       };
     });
 
-    // Send email with reset link OUTSIDE transaction (slow operation)
-    if (result.shouldSendEmail) {
+    // Send code OUTSIDE transaction (slow operation)
+    if (result.shouldSendCode) {
       try {
-        await this.mailService.sendPasswordRecoveryToken(email, resetToken);
+        if (email) {
+          await this.mailService.sendPasswordRecoveryToken(email, result.code);
+        } else if (phone) {
+          await this.smsService.sendPasswordResetCode(phone, result.code);
+        }
       } catch (error) {
-        console.error("Failed to send password reset email:", error);
+        console.error("Failed to send password reset code:", error);
         // Don't throw error - continue execution to maintain security
       }
     }
@@ -259,54 +283,444 @@ export class AuthService {
     };
   }
 
-  async resetPassword(token: string, newPassword: string, userId: number) {
-    // Hash new password
-    const hashedPassword = await this.hashPassword(newPassword);
+  private generateVerificationCode(): string {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
 
-    // Update password, mark reset token as used, create refresh token, and get user data
-    const result = await this.prisma.$transaction(async (tx) => {
-      // Update password
-      const user = await tx.user.update({
-        where: { id: userId },
-        data: { password: hashedPassword },
-        include: { role: true },
-      });
+  private createJwtPayload(user: {
+    id: number;
+    email?: string;
+    phone?: string;
+    role?: { name: string };
+  }): JwtPayload {
+    return {
+      id: user.id,
+      email: user.email,
+      phone: user.phone,
+      role: user.role?.name,
+    };
+  }
 
-      // Revoke all reset tokens for this user
-      await tx.token.updateMany({
-        where: {
-          token,
-          type: TokenType.PASSWORD_RESET_TOKEN,
-          userId,
-        },
-        data: { isRevoked: true },
-      });
+  // Multi-step registration methods
 
-      // Create new refresh token
-      const refreshToken = await this.createRefreshToken(userId, tx);
+  async startRegistration(
+    data: StartRegistrationInput
+  ): Promise<StartRegistrationResponse> {
+    const { email, phone } = data;
 
-      return { user, refreshToken };
+    // Validate that at least one of email or phone is provided
+    const hasEmail = email && email.trim() !== "";
+    const hasPhone = phone && phone.trim() !== "";
+
+    if (!hasEmail && !hasPhone) {
+      throw new BadRequestException("Either email or phone must be provided");
+    }
+
+    // If both email and phone are provided, prioritize email for verification
+    const verifyEmail = hasEmail;
+    const verifyPhone = hasPhone && !hasEmail;
+
+    // Generate 6-digit verification code
+    const verificationCode = this.generateVerificationCode();
+    const hashedCode = await this.hashPassword(verificationCode);
+    const expiresAt = new Date();
+
+    expiresAt.setMinutes(expiresAt.getMinutes() + 20); // Code expires in 20 minutes
+
+    // Check if user already exists and is fully registered
+    const existingUser = await this.prisma.user.findFirst({
+      where: {
+        OR: [email ? { email } : {}, phone ? { phone } : {}].filter(
+          (condition) => Object.keys(condition).length > 0
+        ),
+        password: { not: null }, // User has password (fully registered)
+      },
     });
 
-    // Generate access token
-    const payload = {
-      email: result.user.email,
-      sub: result.user.id,
-      role: result.user.role?.name,
-    };
+    if (existingUser) {
+      throw new ConflictException("User is already registered");
+    }
 
-    const accessToken = this.jwtService.sign(payload);
+    // Check if user exists and registration is completed (step 5)
+    const completedUser = await this.prisma.user.findFirst({
+      where: {
+        OR: [email ? { email } : {}, phone ? { phone } : {}].filter(
+          (condition) => Object.keys(condition).length > 0
+        ),
+        registrationStep: 5,
+      },
+    });
+
+    if (completedUser) {
+      throw new ConflictException("Registration is already completed");
+    }
+
+    // Check if user exists but is in registration process
+    const userInProcess = await this.prisma.user.findFirst({
+      where: {
+        OR: [email ? { email } : {}, phone ? { phone } : {}].filter(
+          (condition) => Object.keys(condition).length > 0
+        ),
+        password: null, // User is in registration process
+      },
+    });
+
+    let user;
+    if (userInProcess) {
+      // Update existing user in process with new verification code
+      user = await this.prisma.user.update({
+        where: { id: userInProcess.id },
+        data: {
+          verificationCode: hashedCode,
+          codeExpiresAt: expiresAt,
+          lastCodeSentAt: new Date(),
+          registrationStep: 2, // Move to step 2 after sending code
+        },
+      });
+    } else {
+      // Create new user
+      user = await this.prisma.user.create({
+        data: {
+          email,
+          phone,
+          role: { connect: { name: RoleType.USER } },
+          verificationCode: hashedCode,
+          codeExpiresAt: expiresAt,
+          lastCodeSentAt: new Date(),
+          registrationStep: 2, // Start at step 2 after sending code
+        },
+      });
+    }
+
+    // Send verification code
+    try {
+      if (verifyEmail) {
+        await this.mailService.sendVerificationCode(email!, verificationCode);
+      } else if (verifyPhone) {
+        await this.smsService.sendVerificationCode(phone!, verificationCode);
+      }
+    } catch (error) {
+      console.error("Failed to send verification code:", error);
+    }
 
     return {
+      message: "Verification code sent successfully",
+      step: 2, // User is now on step 2 (verification)
+      method: verifyEmail ? "email" : "sms",
+      userId: user.id,
+    };
+  }
+
+  async verifyCode(data: VerifyCodeInput): Promise<VerifyCodeResponse> {
+    const { code, userId } = data;
+
+    // Find user by ID with verification code (step 2)
+    const user = await this.prisma.user.findFirst({
+      where: {
+        id: userId,
+        verificationCode: { not: null },
+        codeExpiresAt: {
+          gt: new Date(), // Code not expired
+        },
+      },
+    });
+
+    if (!user) {
+      throw new BadRequestException("Invalid or expired verification code");
+    }
+
+    // Check if registration is already completed
+    if (user.registrationStep === 5) {
+      throw new ConflictException("Registration is already completed");
+    }
+
+    // Verify the code by comparing hashes
+    const isCodeValid = await this.comparePasswords(
+      code,
+      user.verificationCode!
+    );
+    if (!isCodeValid) {
+      throw new BadRequestException("Invalid or expired verification code");
+    }
+
+    // Update verification status
+    const updateData: UserVerificationUpdateData = {
+      verificationCode: null,
+      codeExpiresAt: null,
+      emailVerified: false,
+      phoneVerified: false,
+    };
+
+    // If user has both email and phone, verify only email
+    if (user.email && user.phone) {
+      updateData.emailVerified = true;
+    } else {
+      // If user has only email or only phone, verify that one
+      if (user.email) {
+        updateData.emailVerified = true;
+      }
+      if (user.phone) {
+        updateData.phoneVerified = true;
+      }
+    }
+
+    // Move to step 3 (password setting)
+    updateData.registrationStep = 3;
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id: user.id },
+      data: updateData,
+      include: {
+        role: true,
+      },
+    });
+
+    // Generate temporary token for password setting
+    const payload = this.createJwtPayload(updatedUser);
+    const tempToken = this.jwtService.sign(payload, { expiresIn: "10m" }); // 10 minutes
+
+    return {
+      message: "Verification successful",
+      step: 3, // User is now on step 3 (password setting)
+      verified: true,
+      temp_token: tempToken, // Temporary token for setPassword
+    };
+  }
+
+  async setPassword(
+    { password, confirmPassword }: SetPasswordInput,
+    userId: number
+  ): Promise<SetPasswordResponse> {
+    // Validate that passwords match
+    if (password !== confirmPassword) {
+      throw new BadRequestException("Passwords do not match");
+    }
+
+    // Find user by ID who has verified email/phone but no password (step 3)
+    const user = await this.prisma.user.findFirst({
+      where: {
+        id: userId,
+        OR: [{ emailVerified: true }, { phoneVerified: true }],
+        password: null, // No password set yet
+        registrationStep: 3, // Must be on step 3 (verified but no password)
+      },
+    });
+
+    if (!user) {
+      throw new BadRequestException(
+        "No verified user found for password setting"
+      );
+    }
+
+    // Check if registration is already completed
+    if (user.registrationStep === 5) {
+      throw new ConflictException("Registration is already completed");
+    }
+
+    // Hash password
+    const hashedPassword = await this.hashPassword(password);
+
+    // Update user with password and move to step 4
+    const updatedUser = await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+        registrationStep: 4,
+      },
+      include: {
+        role: true,
+      },
+    });
+
+    // Generate tokens
+    const payload = this.createJwtPayload(updatedUser);
+    const accessToken = this.jwtService.sign(payload);
+    const refreshToken = await this.createRefreshToken(updatedUser.id);
+
+    return {
+      message: "Password set successfully",
+      step: 3,
       access_token: accessToken,
-      refresh_token: result.refreshToken,
+      refresh_token: refreshToken,
       user: {
-        id: result.user.id,
-        email: result.user.email,
-        firstName: result.user.firstName,
-        lastName: result.user.lastName,
-        role: result.user.role,
+        id: updatedUser.id,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        email: updatedUser.email,
+        phone: updatedUser.phone,
+        role: updatedUser.role,
       },
     };
+  }
+
+  async setPersonalInfo(
+    { firstName, lastName }: SetPersonalInfoInput,
+    userId: number
+  ): Promise<SetPersonalInfoResponse> {
+    // Find user by ID who has verified email/phone and password but no personal info (step 4)
+    const user = await this.prisma.user.findFirst({
+      where: {
+        id: userId,
+        password: { not: null },
+        firstName: null,
+        lastName: null,
+      },
+    });
+
+    if (!user) {
+      throw new BadRequestException("No user found for personal info setting");
+    }
+
+    // Update user with personal info and complete registration (step 5)
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        firstName,
+        lastName,
+        registrationStep: 5,
+      },
+    });
+
+    return {
+      message: "Personal information set successfully",
+      step: 5,
+      completed: true,
+    };
+  }
+
+  async resendCode(input: ResendCodeInput): Promise<ResendCodeResponse> {
+    const { userId } = input;
+
+    // Find user by ID who needs code resend (step 2 - not verified)
+    const user = await this.prisma.user.findFirst({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user) {
+      throw new BadRequestException("No user found for code resend");
+    }
+
+    // Check if registration is already completed
+    if (user.registrationStep === 5) {
+      throw new ConflictException("Registration is already completed");
+    }
+
+    // Check if enough time has passed since last code sent
+    const now = new Date();
+    const lastSent = user.lastCodeSentAt;
+    const timeSinceLastSent = lastSent
+      ? now.getTime() - lastSent.getTime()
+      : Infinity;
+
+    // Email: 20 seconds, SMS: 5 minutes
+    // If user has both email and phone, use email interval
+    const minInterval =
+      (user.email && user.phone) || user.email ? 20 * 1000 : 5 * 60 * 1000;
+
+    if (timeSinceLastSent < minInterval) {
+      const canResendAt = new Date(lastSent!.getTime() + minInterval);
+      return {
+        message: "Please wait before requesting another code",
+        canResendAt,
+      };
+    }
+
+    // Generate new verification code
+    const verificationCode = this.generateVerificationCode();
+    const hashedCode = await this.hashPassword(verificationCode);
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 20);
+
+    // Update user with new code
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        verificationCode: hashedCode,
+        codeExpiresAt: expiresAt,
+        lastCodeSentAt: now,
+      },
+    });
+
+    // Send verification code
+    try {
+      // If user has both email and phone, send to email
+      if (user.email && user.phone) {
+        await this.mailService.sendVerificationCode(
+          user.email,
+          verificationCode
+        );
+      } else if (user.email) {
+        await this.mailService.sendVerificationCode(
+          user.email,
+          verificationCode
+        );
+      } else if (user.phone) {
+        await this.smsService.sendVerificationCode(
+          user.phone,
+          verificationCode
+        );
+      }
+    } catch (error) {
+      console.error("Failed to send verification code:", error);
+    }
+
+    return {
+      message: "Verification code sent successfully",
+      canResendAt: new Date(now.getTime() + minInterval),
+    };
+  }
+
+  async goBackStep(input: GoBackStepInput): Promise<MessageResponse> {
+    const { userId } = input;
+
+    // Find user by ID in registration process
+    const user = await this.prisma.user.findFirst({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user) {
+      throw new BadRequestException("No user in registration process found");
+    }
+
+    // Check if registration is already completed
+    if (user.registrationStep === 5) {
+      throw new ConflictException("Registration is already completed");
+    }
+
+    // Block going back after password is set (step 3 and above)
+    if (user.registrationStep >= 3) {
+      throw new BadRequestException(
+        "Cannot go back after password is set. Password verification is required for security."
+      );
+    }
+
+    // Determine current step and what to clear
+    const updateData: UserGoBackUpdateData = {};
+    let message = "";
+
+    // Check current step and go back (only for steps 1-2)
+    if (user.registrationStep === 2) {
+      // Step 2 -> Step 1: Clear verification status
+      updateData.emailVerified = false;
+      updateData.phoneVerified = false;
+      updateData.verificationCode = null;
+      updateData.codeExpiresAt = null;
+      updateData.registrationStep = 1;
+      message = "Verification cleared, back to initial step";
+    } else {
+      // Step 1: Can't go back further
+      throw new BadRequestException("Already at the first step");
+    }
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: updateData,
+    });
+
+    return { message };
   }
 }

@@ -2,21 +2,33 @@ import { Args, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { UseGuards } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { GraphQLAuthGuard } from "./guards/graphql-auth.guard";
-import { ResetTokenGuard } from "./guards/reset-token.guard";
+import { TempTokenGuard } from "./guards/temp-token.guard";
 import { RefreshTokenGuard } from "./guards/refresh-token.guard";
-import { ResetToken, ResetTokenData } from "./decorators/reset-token.decorator";
 import {
   RefreshToken,
   RefreshTokenData,
 } from "./decorators/refresh-token.decorator";
 import { LogoutToken } from "./decorators/logout-token.decorator";
+import { CurrentUser } from "./decorators/current-user.decorator";
+import { CurrentUser as CurrentUserType } from "./types/user.types";
 import {
   LoginInput,
   AuthResponse,
-  RegisterInput,
   ForgotPasswordInput,
-  ResetPasswordInput,
   MessageResponse,
+  StartRegistrationInput,
+  StartRegistrationResponse,
+  VerifyCodeInput,
+  VerifyCodeResponse,
+  SetPasswordInput,
+  SetPasswordResponse,
+  SetPersonalInfoInput,
+  SetPersonalInfoResponse,
+  ResendCodeInput,
+  ResendCodeResponse,
+  GoBackStepInput,
+  UserProfile,
+  UserAuth,
 } from "./auth.model";
 
 @Resolver()
@@ -27,6 +39,7 @@ export class AuthResolver {
   async login(@Args("input") input: LoginInput) {
     const user = await this.authService.validateUser(
       input.email,
+      input.phone,
       input.password
     );
 
@@ -51,31 +64,54 @@ export class AuthResolver {
   }
 
   @UseGuards(GraphQLAuthGuard)
-  @Query(() => String)
-  getProfile() {
-    return "Profile data";
-  }
-
-  @Mutation(() => AuthResponse)
-  async register(@Args("input") input: RegisterInput) {
-    return this.authService.register(input);
+  @Query(() => UserAuth)
+  getProfile(@CurrentUser() user: CurrentUserType) {
+    return user;
   }
 
   @Mutation(() => MessageResponse)
   async forgotPassword(@Args("input") input: ForgotPasswordInput) {
-    return this.authService.forgotPassword(input.email);
+    return this.authService.forgotPassword(input);
   }
 
-  @UseGuards(ResetTokenGuard)
-  @Mutation(() => AuthResponse)
-  async resetPassword(
-    @Args("input") input: ResetPasswordInput,
-    @ResetToken() resetTokenData: ResetTokenData
+  // Multi-step registration mutations
+
+  @Mutation(() => StartRegistrationResponse)
+  async startRegistration(@Args("input") input: StartRegistrationInput) {
+    console.log("input", input);
+    return this.authService.startRegistration(input);
+  }
+
+  @Mutation(() => VerifyCodeResponse)
+  async verifyCode(@Args("input") input: VerifyCodeInput) {
+    return this.authService.verifyCode(input);
+  }
+
+  @Mutation(() => SetPasswordResponse)
+  @UseGuards(TempTokenGuard)
+  async setPassword(
+    @Args("input") input: SetPasswordInput,
+    @CurrentUser() user: CurrentUserType
   ) {
-    return this.authService.resetPassword(
-      resetTokenData.token.token,
-      input.newPassword,
-      resetTokenData.user.id
-    );
+    return this.authService.setPassword(input, user.id);
+  }
+
+  @Mutation(() => SetPersonalInfoResponse)
+  @UseGuards(GraphQLAuthGuard)
+  async setPersonalInfo(
+    @Args("input") input: SetPersonalInfoInput,
+    @CurrentUser() user: CurrentUserType
+  ) {
+    return this.authService.setPersonalInfo(input, user.id);
+  }
+
+  @Mutation(() => ResendCodeResponse)
+  async resendCode(@Args("input") input: ResendCodeInput) {
+    return this.authService.resendCode(input);
+  }
+
+  @Mutation(() => MessageResponse)
+  async goBackStep(@Args("input") input: GoBackStepInput) {
+    return this.authService.goBackStep(input);
   }
 }

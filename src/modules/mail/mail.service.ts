@@ -2,6 +2,7 @@ import { SentMessageInfo } from "nodemailer";
 
 import { VerificationTemplate } from "./templates/verification.template";
 import { PasswordRecoveryTemplate } from "./templates/password-recovery.template";
+import { VerificationCodeTemplate } from "./templates/verification-code.template";
 import { MailerService } from "@nestjs-modules/mailer";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -40,6 +41,21 @@ export class MailService {
     const sentMessageInfo: SentMessageInfo = await this.sendMail(
       email,
       "Reset password",
+      html
+    );
+
+    return sentMessageInfo;
+  }
+
+  public async sendVerificationCode(
+    email: string,
+    code: string
+  ): Promise<SentMessageInfo> {
+    const html = await render(VerificationCodeTemplate({ code }));
+
+    const sentMessageInfo: SentMessageInfo = await this.sendMail(
+      email,
+      "Verification Code",
       html
     );
 

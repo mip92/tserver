@@ -20,7 +20,7 @@ export class ProductResolver {
 
   @Query(() => PaginatedProductsResponse)
   @UseGuards(GraphQLAuthGuard, RolesGuard)
-  @Roles([RoleType.ADMIN, RoleType.USER])
+  @Roles([RoleType.ADMIN])
   async productsWithPagination(
     @Args("query") query: ProductsQueryDto
   ): Promise<PaginatedProductsResponse> {

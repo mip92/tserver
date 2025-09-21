@@ -11,12 +11,14 @@ import { RefreshTokenGuard } from "./guards/refresh-token.guard";
 import { PrismaModule } from "../../prisma/prisma.module";
 import { UserModule } from "../users/user.module";
 import { MailModule } from "../mail/mail.module";
+import { SmsModule } from "../sms/sms.module";
 
 @Module({
   imports: [
     PrismaModule,
     UserModule,
     MailModule,
+    SmsModule,
     PassportModule,
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => {

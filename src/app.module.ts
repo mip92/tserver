@@ -13,6 +13,7 @@ import { BoxTypeModule } from "./modules/box-types/box-type.module";
 import { HealthModule } from "./modules/health/health.module";
 import { FileStorageModule } from "./modules/file-storage/file-storage.module";
 import { MailModule } from "./modules/mail/mail.module";
+import { SmsModule } from "./modules/sms/sms.module";
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { MailModule } from "./modules/mail/mail.module";
       context: ({ req }) => ({ req }),
     }),
     MailModule,
+    SmsModule,
     PrismaModule,
     UserModule,
     RoleModule,

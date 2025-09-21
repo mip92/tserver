@@ -2,4 +2,13 @@ export enum TokenType {
   REFRESH_TOKEN = "REFRESH_TOKEN",
   PASSWORD_RESET_TOKEN = "PASSWORD_RESET_TOKEN",
   EMAIL_VERIFICATION_TOKEN = "EMAIL_VERIFICATION_TOKEN",
+  SMS_VERIFICATION_TOKEN = "SMS_VERIFICATION_TOKEN",
+  SMS_PASSWORD_RESET_TOKEN = "SMS_PASSWORD_RESET_TOKEN",
+}
+
+export interface JwtPayload {
+  id: number;
+  email?: string;
+  phone?: string;
+  role?: string;
 }

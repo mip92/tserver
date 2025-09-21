@@ -17,6 +17,8 @@ enum TokenType {
   REFRESH_TOKEN
   PASSWORD_RESET_TOKEN
   EMAIL_VERIFICATION_TOKEN
+  SMS_VERIFICATION_TOKEN
+  SMS_PASSWORD_RESET_TOKEN
 }
 
 enum ProductType {
@@ -36,18 +38,31 @@ enum FileType {
 
 model User {
   id        Int      @id @default(autoincrement())
-  firstName String
-  lastName  String
-  email     String   @unique
+  firstName String?
+  lastName  String?
+  email     String?
   phone     String?
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  password  String
+  password  String?
+  
+  // Verification fields
+  emailVerified    Boolean   @default(false)
+  phoneVerified    Boolean   @default(false)
+  verificationCode String?
+  codeExpiresAt    DateTime?
+  lastCodeSentAt   DateTime?
+  
+  // Registration step tracking
+  registrationStep Int       @default(1)
+  
   roleId    Int?
   tokens    Token[]
   role      Role?    @relation(fields: [roleId], references: [id])
 
+  @@unique([email], map: "unique_email")
+  @@unique([phone], map: "unique_phone")
   @@map("users")
 }
 
