@@ -12,6 +12,7 @@ import { render } from "@react-email/render";
 export class MailService {
   public constructor(
     private readonly mailerService: MailerService,
+
     private readonly configService: ConfigService
   ) {}
 
