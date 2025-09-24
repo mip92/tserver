@@ -306,123 +306,152 @@ export class AuthService {
   async startRegistration(
     data: StartRegistrationInput
   ): Promise<StartRegistrationResponse> {
-    const { email, phone } = data;
-
-    // Validate that at least one of email or phone is provided
-    const hasEmail = email && email.trim() !== "";
-    const hasPhone = phone && phone.trim() !== "";
-
-    if (!hasEmail && !hasPhone) {
-      throw new BadRequestException("Either email or phone must be provided");
-    }
-
-    // If both email and phone are provided, prioritize email for verification
-    const verifyEmail = hasEmail;
-    const verifyPhone = hasPhone && !hasEmail;
-
-    // Generate 6-digit verification code
-    const verificationCode = this.generateVerificationCode();
-    const hashedCode = await this.hashPassword(verificationCode);
-    const expiresAt = new Date();
-
-    expiresAt.setMinutes(expiresAt.getMinutes() + 20); // Code expires in 20 minutes
-
-    // Check if user already exists and is fully registered
-    const existingUser = await this.prisma.user.findFirst({
-      where: {
-        OR: [email ? { email } : {}, phone ? { phone } : {}].filter(
-          (condition) => Object.keys(condition).length > 0
-        ),
-        password: { not: null }, // User has password (fully registered)
-      },
-    });
-
-    if (existingUser) {
-      throw new ConflictException("User is already registered");
-    }
-
-    // Check if user exists and registration is completed (step 5)
-    const completedUser = await this.prisma.user.findFirst({
-      where: {
-        OR: [email ? { email } : {}, phone ? { phone } : {}].filter(
-          (condition) => Object.keys(condition).length > 0
-        ),
-        registrationStep: 5,
-      },
-    });
-
-    if (completedUser) {
-      throw new ConflictException("Registration is already completed");
-    }
-
-    // Check if user exists but is in registration process
-    const userInProcess = await this.prisma.user.findFirst({
-      where: {
-        OR: [email ? { email } : {}, phone ? { phone } : {}].filter(
-          (condition) => Object.keys(condition).length > 0
-        ),
-        password: null, // User is in registration process
-      },
-    });
-
-    let user;
-    if (userInProcess) {
-      // Update existing user in process with new verification code
-      user = await this.prisma.user.update({
-        where: { id: userInProcess.id },
-        data: {
-          verificationCode: hashedCode,
-          codeExpiresAt: expiresAt,
-          lastCodeSentAt: new Date(),
-          registrationStep: 2, // Move to step 2 after sending code
-        },
-      });
-    } else {
-      // Create new user
-      user = await this.prisma.user.create({
-        data: {
-          email,
-          phone,
-          role: { connect: { name: RoleType.USER } },
-          verificationCode: hashedCode,
-          codeExpiresAt: expiresAt,
-          lastCodeSentAt: new Date(),
-          registrationStep: 2, // Start at step 2 after sending code
-        },
-      });
-    }
-
-    // Send verification code
     try {
-      if (verifyEmail) {
-        console.log(`🔐 [AUTH] Sending email verification code to: ${email}`);
-        console.log(`🔐 [AUTH] User ID: ${user.id}`);
-        await this.mailService.sendVerificationCode(email!, verificationCode);
-        console.log(
-          `✅ [AUTH] Email verification code sent successfully to: ${email}`
-        );
-      } else if (verifyPhone) {
-        console.log(`📱 [AUTH] Sending SMS verification code to: ${phone}`);
-        console.log(`📱 [AUTH] User ID: ${user.id}`);
-        await this.smsService.sendVerificationCode(phone!, verificationCode);
-        console.log(
-          `✅ [AUTH] SMS verification code sent successfully to: ${phone}`
-        );
-      }
-    } catch (error) {
-      console.error(
-        `❌ [AUTH] Failed to send verification code to user ${user.id}:`,
-        error
-      );
-      console.error(`❌ [AUTH] Error details:`, error.message);
-    }
+      const { email, phone } = data;
 
-    return {
-      message: "Verification code sent successfully",
-      step: 2, // User is now on step 2 (verification)
-      method: verifyEmail ? "email" : "sms",
-      userId: user.id,
-    };
+      // Validate that at least one of email or phone is provided
+      const hasEmail = email && email.trim() !== "";
+      const hasPhone = phone && phone.trim() !== "";
+
+      if (!hasEmail && !hasPhone) {
+        throw new BadRequestException("Either email or phone must be provided");
+      }
+
+      // If both email and phone are provided, prioritize email for verification
+      const verifyEmail = hasEmail;
+      const verifyPhone = hasPhone && !hasEmail;
+
+      // Generate 6-digit verification code
+      const verificationCode = this.generateVerificationCode();
+      const hashedCode = await this.hashPassword(verificationCode);
+      const expiresAt = new Date();
+
+      expiresAt.setMinutes(expiresAt.getMinutes() + 20); // Code expires in 20 minutes
+
+      // Check if user already exists and is fully registered
+      const existingUser = await this.prisma.user.findFirst({
+        where: {
+          OR: [email ? { email } : {}, phone ? { phone } : {}].filter(
+            (condition) => Object.keys(condition).length > 0
+          ),
+          password: { not: null }, // User has password (fully registered)
+        },
+      });
+
+      if (existingUser) {
+        throw new ConflictException("User is already registered");
+      }
+
+      // Check if user exists and registration is completed (step 5)
+      const completedUser = await this.prisma.user.findFirst({
+        where: {
+          OR: [email ? { email } : {}, phone ? { phone } : {}].filter(
+            (condition) => Object.keys(condition).length > 0
+          ),
+          registrationStep: 5,
+        },
+      });
+
+      if (completedUser) {
+        throw new ConflictException("Registration is already completed");
+      }
+
+      // Use transaction to ensure atomicity
+      const user = await this.prisma.$transaction(async (tx) => {
+        // Check if user exists but is in registration process
+        const userInProcess = await tx.user.findFirst({
+          where: {
+            OR: [email ? { email } : {}, phone ? { phone } : {}].filter(
+              (condition) => Object.keys(condition).length > 0
+            ),
+            password: null, // User is in registration process
+          },
+        });
+
+        let user;
+        if (userInProcess) {
+          // Update existing user in process with new verification code
+          user = await tx.user.update({
+            where: { id: userInProcess.id },
+            data: {
+              verificationCode: hashedCode,
+              codeExpiresAt: expiresAt,
+              lastCodeSentAt: new Date(),
+              registrationStep: 2, // Move to step 2 after sending code
+            },
+          });
+        } else {
+          // Create new user
+          user = await tx.user.create({
+            data: {
+              email,
+              phone,
+              role: { connect: { name: RoleType.USER } },
+              verificationCode: hashedCode,
+              codeExpiresAt: expiresAt,
+              lastCodeSentAt: new Date(),
+              registrationStep: 2, // Start at step 2 after sending code
+            },
+          });
+        }
+
+        // Send verification code
+        try {
+          if (verifyEmail) {
+            console.log(
+              `🔐 [AUTH] Sending email verification code to: ${email}`
+            );
+            console.log(`🔐 [AUTH] User ID: ${user.id}`);
+            await this.mailService.sendVerificationCode(
+              email!,
+              verificationCode
+            );
+            console.log(
+              `✅ [AUTH] Email verification code sent successfully to: ${email}`
+            );
+          } else if (verifyPhone) {
+            console.log(`📱 [AUTH] Sending SMS verification code to: ${phone}`);
+            console.log(`📱 [AUTH] User ID: ${user.id}`);
+            await this.smsService.sendVerificationCode(
+              phone!,
+              verificationCode
+            );
+            console.log(
+              `✅ [AUTH] SMS verification code sent successfully to: ${phone}`
+            );
+          }
+        } catch (error) {
+          console.error(
+            `❌ [AUTH] Failed to send verification code to user ${user.id}:`,
+            error
+          );
+          console.error(`❌ [AUTH] Error details:`, error.message);
+          // Re-throw error to rollback transaction
+          throw error;
+        }
+
+        return user;
+      });
+
+      return {
+        message: "Verification code sent successfully",
+        step: 2, // User is now on step 2 (verification)
+        method: verifyEmail ? "email" : "sms",
+        userId: user.id,
+      };
+    } catch (error) {
+      console.error(`❌ [AUTH] Registration failed:`, error);
+      console.error(`❌ [AUTH] Error details:`, error.message);
+
+      // Return appropriate error response instead of throwing
+      if (error instanceof ConflictException) {
+        throw error; // Re-throw business logic errors
+      }
+
+      throw new BadRequestException(
+        `Failed to start registration: ${error.message}`
+      );
+    }
   }
 
   async verifyCode(data: VerifyCodeInput): Promise<VerifyCodeResponse> {
