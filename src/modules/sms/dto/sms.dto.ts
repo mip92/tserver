@@ -1,19 +1,19 @@
-import { Field, InputType, ObjectType } from '@nestjs/graphql';
-import { IsString, IsNotEmpty, IsOptional, Matches } from 'class-validator';
+import { Field, InputType, ObjectType } from "@nestjs/graphql";
+import { IsString, IsNotEmpty, IsOptional, Matches } from "class-validator";
 
 @InputType()
 export class SendSmsInput {
   @Field()
   @IsString()
-  @IsNotEmpty({ message: 'Phone number is required' })
-  @Matches(/^(\+380|380|0)\d{9}$/, { 
-    message: 'Please provide a valid Ukrainian phone number' 
+  @IsNotEmpty({ message: "Phone number is required" })
+  @Matches(/^(\+380|380|0)\d{9}$/, {
+    message: "Please provide a valid Ukrainian phone number",
   })
   phoneNumber: string;
 
   @Field()
   @IsString()
-  @IsNotEmpty({ message: 'Message is required' })
+  @IsNotEmpty({ message: "Message is required" })
   message: string;
 
   @Field({ nullable: true })
@@ -26,17 +26,17 @@ export class SendSmsInput {
 export class SendVerificationCodeInput {
   @Field()
   @IsString()
-  @IsNotEmpty({ message: 'Phone number is required' })
-  @Matches(/^(\+380|380|0)\d{9}$/, { 
-    message: 'Please provide a valid Ukrainian phone number' 
+  @IsNotEmpty({ message: "Phone number is required" })
+  @Matches(/^(\+380|380|0)\d{9}$/, {
+    message: "Please provide a valid Ukrainian phone number",
   })
   phoneNumber: string;
 
   @Field()
   @IsString()
-  @IsNotEmpty({ message: 'Code is required' })
-  @Matches(/^\d{4}$/, { 
-    message: 'Code must be exactly 4 digits' 
+  @IsNotEmpty({ message: "Code is required" })
+  @Matches(/^\d{4}$/, {
+    message: "Code must be exactly 4 digits",
   })
   code: string;
 }
@@ -45,17 +45,17 @@ export class SendVerificationCodeInput {
 export class SendPasswordResetCodeInput {
   @Field()
   @IsString()
-  @IsNotEmpty({ message: 'Phone number is required' })
-  @Matches(/^(\+380|380|0)\d{9}$/, { 
-    message: 'Please provide a valid Ukrainian phone number' 
+  @IsNotEmpty({ message: "Phone number is required" })
+  @Matches(/^(\+380|380|0)\d{9}$/, {
+    message: "Please provide a valid Ukrainian phone number",
   })
   phoneNumber: string;
 
   @Field()
   @IsString()
-  @IsNotEmpty({ message: 'Code is required' })
-  @Matches(/^\d{4}$/, { 
-    message: 'Code must be exactly 4 digits' 
+  @IsNotEmpty({ message: "Code is required" })
+  @Matches(/^\d{4}$/, {
+    message: "Code must be exactly 4 digits",
   })
   code: string;
 }
@@ -83,10 +83,3 @@ export class SmsBalanceResponse {
   @Field({ nullable: true })
   error?: string;
 }
-
-
-
-
-
-
-
