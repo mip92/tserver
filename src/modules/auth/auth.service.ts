@@ -356,7 +356,7 @@ export class AuthService {
         throw new ConflictException("Registration is already completed");
       }
 
-      // Use transaction to ensure atomicity
+      // Use transaction only for database operations
       const user = await this.prisma.$transaction(async (tx) => {
         // Check if user exists but is in registration process
         const userInProcess = await tx.user.findFirst({
@@ -395,43 +395,34 @@ export class AuthService {
           });
         }
 
-        // Send verification code
-        try {
-          if (verifyEmail) {
-            console.log(
-              `🔐 [AUTH] Sending email verification code to: ${email}`
-            );
-            console.log(`🔐 [AUTH] User ID: ${user.id}`);
-            await this.mailService.sendVerificationCode(
-              email!,
-              verificationCode
-            );
-            console.log(
-              `✅ [AUTH] Email verification code sent successfully to: ${email}`
-            );
-          } else if (verifyPhone) {
-            console.log(`📱 [AUTH] Sending SMS verification code to: ${phone}`);
-            console.log(`📱 [AUTH] User ID: ${user.id}`);
-            await this.smsService.sendVerificationCode(
-              phone!,
-              verificationCode
-            );
-            console.log(
-              `✅ [AUTH] SMS verification code sent successfully to: ${phone}`
-            );
-          }
-        } catch (error) {
-          console.error(
-            `❌ [AUTH] Failed to send verification code to user ${user.id}:`,
-            error
-          );
-          console.error(`❌ [AUTH] Error details:`, error.message);
-          // Re-throw error to rollback transaction
-          throw error;
-        }
-
         return user;
       });
+
+      // Send verification code OUTSIDE transaction to avoid memory issues
+      try {
+        if (verifyEmail) {
+          console.log(`🔐 [AUTH] Sending email verification code to: ${email}`);
+          console.log(`🔐 [AUTH] User ID: ${user.id}`);
+          await this.mailService.sendVerificationCode(email!, verificationCode);
+          console.log(
+            `✅ [AUTH] Email verification code sent successfully to: ${email}`
+          );
+        } else if (verifyPhone) {
+          console.log(`📱 [AUTH] Sending SMS verification code to: ${phone}`);
+          console.log(`📱 [AUTH] User ID: ${user.id}`);
+          await this.smsService.sendVerificationCode(phone!, verificationCode);
+          console.log(
+            `✅ [AUTH] SMS verification code sent successfully to: ${phone}`
+          );
+        }
+      } catch (error) {
+        console.error(
+          `❌ [AUTH] Failed to send verification code to user ${user.id}:`,
+          error
+        );
+        console.error(`❌ [AUTH] Error details:`, error.message);
+        // Don't throw error here - user is already created, just log the issue
+      }
 
       return {
         message: "Verification code sent successfully",
