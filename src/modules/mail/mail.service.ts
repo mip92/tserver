@@ -51,15 +51,31 @@ export class MailService {
     email: string,
     code: string
   ): Promise<SentMessageInfo> {
+    console.log(`📧 [MAIL] Sending verification code to: ${email}`);
+    console.log(`📧 [MAIL] Code: ${code}`);
+
     const html = await render(VerificationCodeTemplate({ code }));
 
-    const sentMessageInfo: SentMessageInfo = await this.sendMail(
-      email,
-      "Verification Code",
-      html
-    );
+    try {
+      console.log(`1111📧 [MAIL] Sending email to: ${email}`);
+      console.log(`📧 [MAIL] Subject: Verification Code`);
+      console.log(`📧 [MAIL] HTML: ${html}`);
 
-    return sentMessageInfo;
+      const sentMessageInfo: SentMessageInfo = await this.sendMail(
+        email,
+        "Verification Code",
+        html
+      );
+
+      console.log(`✅ [MAIL] Verification code sent successfully to: ${email}`);
+      console.log(`📧 [MAIL] Message ID: ${sentMessageInfo.messageId}`);
+
+      return sentMessageInfo;
+    } catch (error) {
+      console.error(`❌ [MAIL] Failed to send verification code to: ${email}`);
+      console.error(`❌ [MAIL] Error:`, error);
+      throw error;
+    }
   }
 
   private async sendMail(
@@ -67,10 +83,23 @@ export class MailService {
     subject: string,
     html: string
   ): Promise<SentMessageInfo> {
-    return this.mailerService.sendMail({
-      to: email,
-      subject,
-      html,
-    });
+    console.log(`📧 [MAIL] Attempting to send email to: ${email}`);
+    console.log(`📧 [MAIL] Subject: ${subject}`);
+
+    try {
+      const result = await this.mailerService.sendMail({
+        to: email,
+        subject,
+        html,
+      });
+
+      console.log(`✅ [MAIL] Email sent successfully to: ${email}`);
+      return result;
+    } catch (error) {
+      console.error(`❌ [MAIL] Failed to send email to: ${email}`);
+      console.error(`❌ [MAIL] Subject: ${subject}`);
+      console.error(`❌ [MAIL] Error details:`, error);
+      throw error;
+    }
   }
 }
