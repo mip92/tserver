@@ -40,8 +40,16 @@ export const getMailerConfig = (
         ? {
             rejectUnauthorized: false,
             ciphers: "SSLv3",
+            secureProtocol: "TLSv1_2_method",
           }
         : undefined,
+      connectionTimeout: 60000, // 60 seconds
+      greetingTimeout: 30000, // 30 seconds
+      socketTimeout: 60000, // 60 seconds
+      pool: true,
+      maxConnections: 1,
+      maxMessages: 100,
+      rateLimit: 10, // 10 emails per second
     },
     defaults: {
       from: configService.getOrThrow<string>("MAIL_LOGIN"),

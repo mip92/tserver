@@ -2,6 +2,7 @@ import { SentMessageInfo } from "nodemailer";
 
 import { VerificationTemplate } from "./templates/verification.template";
 import { PasswordRecoveryTemplate } from "./templates/password-recovery.template";
+import { VerificationCodeTemplate } from "./templates/verification-code.template";
 import { MailerService } from "@nestjs-modules/mailer";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
