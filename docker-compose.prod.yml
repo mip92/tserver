@@ -5,8 +5,15 @@ services:
     image: mip92/tattoo-server:latest
     container_name: tattoo-backend-prod
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 400M
+        reservations:
+          memory: 256M
     environment:
       NODE_ENV: production
+      NODE_OPTIONS: "--max-old-space-size=300"
       DATABASE_URL: ${DATABASE_URL}
       JWT_SECRET: ${JWT_SECRET}
       JWT_ACCESS_TOKEN_EXPIRES_IN: ${JWT_ACCESS_TOKEN_EXPIRES_IN:-15m}

@@ -57,18 +57,17 @@ export class MailService {
     const html = await render(VerificationCodeTemplate({ code }));
 
     try {
-      console.log(`1111📧 [MAIL] Sending email to: ${email}`);
-      console.log(`📧 [MAIL] Subject: Verification Code`);
-      console.log(`📧 [MAIL] HTML: ${html}`);
+      console.log(`📧 [MAIL] Sending email to: ${email}`);
 
       const sentMessageInfo: SentMessageInfo = await this.sendMail(
         email,
         "Verification Code",
         html
       );
+      console.log(sentMessageInfo);
 
       console.log(`✅ [MAIL] Verification code sent successfully to: ${email}`);
-      console.log(`📧 [MAIL] Message ID: ${sentMessageInfo.messageId}`);
+      console.log(`📧 [MAIL] Message ID: ${sentMessageInfo?.messageId}`);
 
       return sentMessageInfo;
     } catch (error) {

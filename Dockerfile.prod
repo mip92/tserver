@@ -41,5 +41,5 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
 EXPOSE 3000
 
-# Запускаем production приложение
-CMD ["npm", "run", "start:prod"]
+# Запускаем production приложение с оптимизацией памяти
+CMD ["node", "--max-old-space-size=300", "dist/src/main.js"]
