@@ -2,7 +2,6 @@ import { SentMessageInfo } from "nodemailer";
 
 import { VerificationTemplate } from "./templates/verification.template";
 import { PasswordRecoveryTemplate } from "./templates/password-recovery.template";
-import { VerificationCodeTemplate } from "./templates/verification-code.template";
 import { MailerService } from "@nestjs-modules/mailer";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -54,7 +53,27 @@ export class MailService {
     console.log(`📧 [MAIL] Sending verification code to: ${email}`);
     console.log(`📧 [MAIL] Code: ${code}`);
 
-    const html = await render(VerificationCodeTemplate({ code }));
+    // Use simple HTML without React rendering to save memory
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Verification Code</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="text-align: center; background: #f8f9fa; padding: 30px; border-radius: 8px;">
+            <h2 style="color: #333; margin-bottom: 20px;">Verification Code</h2>
+            <p style="color: #666; margin-bottom: 20px;">Your verification code is:</p>
+            <div style="background: #e9ecef; padding: 20px; border-radius: 6px; display: inline-block; margin: 20px 0;">
+              <span style="font-size: 32px; font-weight: bold; color: #18B9AE; letter-spacing: 4px;">${code}</span>
+            </div>
+            <p style="color: #666; font-size: 14px; margin-top: 20px;">This code will expire in 20 minutes.</p>
+            <p style="color: #666; font-size: 14px;">If you didn't request this code, please ignore this email.</p>
+          </div>
+        </body>
+      </html>
+    `;
 
     try {
       console.log(`📧 [MAIL] Sending email to: ${email}`);
@@ -64,7 +83,6 @@ export class MailService {
         "Verification Code",
         html
       );
-      console.log(sentMessageInfo);
 
       console.log(`✅ [MAIL] Verification code sent successfully to: ${email}`);
       console.log(`📧 [MAIL] Message ID: ${sentMessageInfo?.messageId}`);
