@@ -83,3 +83,4 @@ export class SmsBalanceResponse {
   @Field({ nullable: true })
   error?: string;
 }
+

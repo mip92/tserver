@@ -4,46 +4,26 @@ import { ConfigService } from "@nestjs/config";
 export const getMailerConfig = (
   configService: ConfigService
 ): MailerOptions => {
-  const port = Number(configService.getOrThrow<string>("MAIL_PORT"));
-  const isSecure = port === 465;
-  const isPort2525 = port === 2525;
-
-  // Log configuration for debugging
-  console.log("📧 [MAIL CONFIG] SMTP Configuration:");
-  console.log(
-    `📧 [MAIL CONFIG] Host: ${configService.getOrThrow<string>("MAIL_HOST")}`
-  );
-  console.log(`📧 [MAIL CONFIG] Port: ${port}`);
-  console.log(`📧 [MAIL CONFIG] Secure: ${isSecure}`);
-  console.log(`📧 [MAIL CONFIG] TLS: ${isPort2525 ? "enabled" : "disabled"}`);
-  console.log(
-    `📧 [MAIL CONFIG] Login: ${configService.getOrThrow<string>("MAIL_LOGIN")}`
-  );
-  console.log(
-    `📧 [MAIL CONFIG] Password: ${
-      configService.getOrThrow<string>("MAIL_PASSWORD")
-        ? "***SET***"
-        : "NOT SET"
-    }`
-  );
+  const host = configService.getOrThrow<string>("MAIL_HOST");
+  const login = configService.getOrThrow<string>("MAIL_LOGIN");
+  const password = configService.getOrThrow<string>("MAIL_PASSWORD");
 
   return {
     transport: {
+      logger: true,
+      debug: true,
       host: configService.getOrThrow<string>("MAIL_HOST"),
-      port,
-      secure: isSecure,
+      secure: false, // STARTTLS
+      requireTLS: true,
+      port: 2525,
       auth: {
         user: configService.getOrThrow<string>("MAIL_LOGIN"),
         pass: configService.getOrThrow<string>("MAIL_PASSWORD"),
       },
-      tls: isPort2525
-        ? {
-            rejectUnauthorized: false,
-          }
-        : undefined,
-    },
-    defaults: {
-      from: configService.getOrThrow<string>("MAIL_LOGIN"),
+      tls: {
+        ciphers: "SSLv3",
+        rejectUnauthorized: false,
+      },
     },
   };
 };
