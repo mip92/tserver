@@ -44,11 +44,9 @@ services:
       S3_PUBLIC_DOMAIN: ${S3_PUBLIC_DOMAIN}
       # CORS Configuration
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
-      # Mail Configuration
-      MAIL_HOST: ${MAIL_HOST}
-      MAIL_PORT: ${MAIL_PORT}
-      MAIL_LOGIN: ${MAIL_LOGIN}
-      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      # Brevo API Configuration
+      BREVO_API_KEY: ${BREVO_API_KEY}
+      BREVO_FROM_EMAIL: ${BREVO_FROM_EMAIL}
       # SMS Configuration
       KYIVSTAR_CLIENT_ID: ${KYIVSTAR_CLIENT_ID}
       KYIVSTAR_CLIENT_SECRET: ${KYIVSTAR_CLIENT_SECRET}
@@ -86,11 +84,14 @@ services:
       S3_PUBLIC_DOMAIN: ${S3_PUBLIC_DOMAIN}
       # CORS Configuration
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
-      # Mail Configuration
-      MAIL_HOST: ${MAIL_HOST}
-      MAIL_PORT: ${MAIL_PORT}
-      MAIL_LOGIN: ${MAIL_LOGIN}
-      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      # Brevo API Configuration
+      BREVO_API_KEY: ${BREVO_API_KEY}
+      BREVO_FROM_EMAIL: ${BREVO_FROM_EMAIL}
+      # SMS Configuration
+      KYIVSTAR_CLIENT_ID: ${KYIVSTAR_CLIENT_ID}
+      KYIVSTAR_CLIENT_SECRET: ${KYIVSTAR_CLIENT_SECRET}
+      KYIVSTAR_API_URL: ${KYIVSTAR_API_URL}
+      SMS_SENDER: ${SMS_SENDER}
     volumes:
       - .:/app
       - /app/dist
