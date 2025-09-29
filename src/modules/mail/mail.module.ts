@@ -1,19 +1,12 @@
 import { MailService } from "./mail.service";
-import { MailerModule } from "@nestjs-modules/mailer";
+import { BrevoApiService } from "./brevo-api.service";
 import { Global, Module } from "@nestjs/common";
-import { ConfigModule, ConfigService } from "@nestjs/config";
-import { getMailerConfig } from "./mailer.config";
+import { ConfigModule } from "@nestjs/config";
 
 @Global()
 @Module({
-  imports: [
-    MailerModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: getMailerConfig,
-      inject: [ConfigService],
-    }),
-  ],
-  providers: [MailService],
+  imports: [ConfigModule],
+  providers: [MailService, BrevoApiService],
   exports: [MailService],
 })
 export class MailModule {}
